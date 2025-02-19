@@ -1,159 +1,89 @@
-'use client';
+'use client'
 
-import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useToast } from '@/components/ui/use-toast';
+import { createContext, useContext, useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
 interface User {
-  id: string;
-  name: string;
-  email: string;
+  id: string
+  email: string
+  name: string
 }
 
 interface AuthContextType {
-  user: User | null;
-  login: (email: string, password: string) => Promise<void>;
-  signup: (name: string, email: string, password: string) => Promise<void>;
-  logout: () => void;
-  isAuthenticated: boolean;
-  isLoading: boolean;
+  user: User | null
+  login: (email: string, password: string) => Promise<void>
+  logout: () => void
+  isAuthenticated: boolean
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
-  const { toast } = useToast();
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null)
+  const router = useRouter()
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const token = localStorage.getItem('auth_token');
-
-        if (!token) {
-          const path = window.location.pathname;
-          if (path !== '/login' && path !== '/signup' && path !== '/') {
-            router.push('/login');
-          }
-          setIsLoading(false);
-          return;
-        }
-
-        // For demo purposes, we'll create a mock user
-        const mockUser = {
-          id: '1',
-          name: 'Demo User',
-          email: 'demo@example.com'
-        };
-
-        setUser(mockUser);
-
-        // Redirect if on auth pages
-        const path = window.location.pathname;
-        if (path === '/login' || path === '/signup') {
-          router.push('/dashboard');
-        }
-      } catch (error) {
-        console.error('Auth check failed:', error);
-        localStorage.removeItem('auth_token');
-        document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-        setUser(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkAuth();
-  }, [router]);
+    // Check if user is logged in on mount
+    const token = localStorage.getItem('token')
+    if (token) {
+      // For demo, create a mock user
+      setUser({
+        id: '1',
+        email: 'demo@example.com',
+        name: 'Demo User'
+      })
+    }
+  }, [])
 
   const login = async (email: string, password: string) => {
-    try {
-      setIsLoading(true);
-
-      // For demo purposes, we'll simulate a successful login
-      if (email && password) {
-        const mockUser = {
-          id: '1',
-          name: 'Demo User',
-          email: email
-        };
-
-        // Store auth token in both localStorage and cookies
-        localStorage.setItem('auth_token', 'mock_token');
-        document.cookie = 'auth_token=mock_token; path=/';
-
-        setUser(mockUser);
-
-        // Redirect to dashboard
-        await router.push('/dashboard');
-      } else {
-        throw new Error('Invalid credentials');
-      }
-    } catch (error) {
-      console.error('Login failed:', error);
-      throw error;
-    } finally {
-      setIsLoading(false);
+    if (!email || !password) {
+      throw new Error('Please provide both email and password')
     }
-  };
 
-  const signup = async (name: string, email: string, password: string) => {
     try {
-      setIsLoading(true);
-
-      if (name && email && password) {
-        const mockUser = {
-          id: '1',
-          name: name,
-          email: email
-        };
-
-        // Store auth token in both localStorage and cookies
-        localStorage.setItem('auth_token', 'mock_token');
-        document.cookie = 'auth_token=mock_token; path=/';
-
-        setUser(mockUser);
-        await router.push('/dashboard');
-      } else {
-        throw new Error('Invalid signup data');
+      // For demo purposes, accept any email/password
+      const mockUser = {
+        id: '1',
+        email,
+        name: email.split('@')[0]
       }
+
+      // Store token and user data
+      localStorage.setItem('token', 'demo-token')
+      setUser(mockUser)
+
+      // Set cookie for middleware
+      document.cookie = `auth_token=demo-token; path=/`
     } catch (error) {
-      console.error('Signup failed:', error);
-      throw error;
-    } finally {
-      setIsLoading(false);
+      throw new Error('Invalid credentials')
     }
-  };
+  }
 
   const logout = () => {
-    localStorage.removeItem('auth_token');
-    document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-    setUser(null);
-    router.push('/');
-  };
+    localStorage.removeItem('token')
+    document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT'
+    setUser(null)
+    router.push('/')
+  }
 
   return (
-    <AuthContext.Provider 
-      value={{ 
-        user, 
-        login, 
-        signup,
-        logout, 
-        isAuthenticated: !!user,
-        isLoading 
+    <AuthContext.Provider
+      value={{
+        user,
+        login,
+        logout,
+        isAuthenticated: !!user
       }}
     >
       {children}
     </AuthContext.Provider>
-  );
+  )
 }
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+  const context = useContext(AuthContext)
+  if (!context) {
+    throw new Error('useAuth must be used within AuthProvider')
   }
-  return context;
-};
+  return context
+}
