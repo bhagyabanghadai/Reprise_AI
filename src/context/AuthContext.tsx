@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useState, useEffect } from 'react'
 
 interface User {
   id: string
@@ -12,17 +12,38 @@ interface AuthContextType {
   user: User | null
   login: (email: string, password: string) => Promise<void>
   logout: () => void
+  isLoading: boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  // Check for existing session on mount
+  useEffect(() => {
+    const checkAuth = () => {
+      const token = document.cookie.includes('auth_token=demo-token')
+      if (token) {
+        // If we have a token, set the user
+        const savedEmail = localStorage.getItem('user_email')
+        if (savedEmail) {
+          setUser({
+            id: '1',
+            email: savedEmail,
+            name: savedEmail.split('@')[0]
+          })
+        }
+      }
+      setIsLoading(false)
+    }
+
+    checkAuth()
+  }, [])
 
   const login = async (email: string, password: string) => {
     try {
-      console.log('Login attempt:', email)
-
       // Mock authentication - in a real app, this would be an API call
       const mockUser = {
         id: '1',
@@ -30,13 +51,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         name: email.split('@')[0]
       }
 
+      // Store email for session persistence
+      localStorage.setItem('user_email', email)
+
       // Set authentication token in cookie for middleware
-      document.cookie = 'auth_token=demo-token; path=/; max-age=3600'
-      console.log('Auth token set:', document.cookie)
+      document.cookie = `auth_token=demo-token; path=/; max-age=3600`
 
       // Set user in state
       setUser(mockUser)
-      console.log('User set in state:', mockUser)
+
+      // Return to allow the login page to handle redirection
+      return
     } catch (error) {
       console.error('Login error:', error)
       throw error
@@ -46,12 +71,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     // Clear authentication
     document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT'
+    localStorage.removeItem('user_email')
     setUser(null)
     window.location.href = '/'
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   )

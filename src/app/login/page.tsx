@@ -9,6 +9,7 @@ import Footer from '@/components/Footer'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Loader2 } from 'lucide-react'
+import { useToast } from '@/components/ui/use-toast'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -17,6 +18,7 @@ export default function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { login } = useAuth()
+  const { toast } = useToast()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -24,12 +26,22 @@ export default function LoginPage() {
 
     try {
       await login(email, password)
+
+      // After successful login, get the redirect URL
       const from = searchParams.get('from') || '/dashboard'
-      // Use window.location for a hard redirect
-      window.location.href = from
+
+      // Use a small delay to ensure cookie is set
+      setTimeout(() => {
+        window.location.href = from
+      }, 100)
+
     } catch (error) {
       console.error('Login failed:', error)
-      alert('Login failed. Please try again.')
+      toast({
+        title: "Error",
+        description: "Login failed. Please try again.",
+        variant: "destructive"
+      })
     } finally {
       setLoading(false)
     }
