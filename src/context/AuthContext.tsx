@@ -28,7 +28,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         name: email.split('@')[0]
       }
 
-      // Set auth token
+      // Set auth token - Note: setting both localStorage and cookie for middleware
       localStorage.setItem('token', 'demo-token')
       document.cookie = 'auth_token=demo-token; path=/'
 

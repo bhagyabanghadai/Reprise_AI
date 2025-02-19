@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/context/AuthContext'
 import Header from '@/components/Header'
@@ -15,6 +15,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { login } = useAuth()
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -23,7 +24,10 @@ export default function LoginPage() {
 
     try {
       await login(email, password)
-      window.location.href = '/dashboard'
+
+      // Get the redirect URL from the query parameters, default to dashboard
+      const from = searchParams.get('from') || '/dashboard'
+      router.push(from)
     } catch (error) {
       console.error('Login failed:', error)
       alert('Login failed. Please try again.')

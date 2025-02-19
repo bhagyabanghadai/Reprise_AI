@@ -15,6 +15,11 @@ export function middleware(request: NextRequest) {
   const isProtectedRoute = protectedRoutes.some(route => path.startsWith(route))
   const isAuthRoute = authRoutes.some(route => path === route)
 
+  // If trying to access auth routes with token, redirect to dashboard
+  if (isAuthRoute && token) {
+    return NextResponse.redirect(new URL('/dashboard', request.url))
+  }
+
   // If trying to access protected route without token, redirect to login
   if (isProtectedRoute && !token) {
     const loginUrl = new URL('/login', request.url)
@@ -22,15 +27,9 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
-  // If trying to access auth routes with token, redirect to dashboard
-  if (isAuthRoute && token) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
-  }
-
   return NextResponse.next()
 }
 
-// Configure the paths that trigger the middleware
 export const config = {
   matcher: [
     '/dashboard/:path*',
