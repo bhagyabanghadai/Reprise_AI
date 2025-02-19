@@ -72,7 +72,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsLoading(true);
 
       // For demo purposes, we'll simulate a successful login
-      // In production, this would be an actual API call
       if (email && password) {
         const mockUser = {
           id: '1',
@@ -80,8 +79,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           email: email
         };
 
-        // Store auth token
+        // Store auth token in both localStorage and cookies
         localStorage.setItem('auth_token', 'mock_token');
+        document.cookie = 'auth_token=mock_token; path=/';
+
         setUser(mockUser);
 
         toast({
@@ -101,7 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         description: "Please check your credentials and try again.",
         variant: "destructive",
       });
-      throw error; // Re-throw to be handled by the login form
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -111,7 +112,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setIsLoading(true);
 
-      // For demo purposes, we'll simulate a successful signup
       if (name && email && password) {
         const mockUser = {
           id: '1',
@@ -119,7 +119,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           email: email
         };
 
+        // Store auth token in both localStorage and cookies
         localStorage.setItem('auth_token', 'mock_token');
+        document.cookie = 'auth_token=mock_token; path=/';
+
         setUser(mockUser);
 
         toast({
@@ -146,6 +149,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     localStorage.removeItem('auth_token');
+    document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
     setUser(null);
     router.push('/');
     toast({

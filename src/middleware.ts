@@ -1,14 +1,13 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-// This function can be marked `async` if using `await` inside
 export function middleware(request: NextRequest) {
   const token = request.cookies.get('auth_token')?.value
   const path = request.nextUrl.pathname
 
   // List of protected routes that require authentication
   const protectedRoutes = ['/dashboard', '/workouts', '/profile']
-  
+
   // List of auth routes that should redirect to dashboard if already logged in
   const authRoutes = ['/login', '/signup']
 
