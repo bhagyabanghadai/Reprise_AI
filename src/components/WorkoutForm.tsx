@@ -40,6 +40,7 @@ export default function WorkoutForm({ userId }: WorkoutFormProps) {
           throw new Error('Failed to fetch exercises');
         }
         const data = await response.json();
+        console.log('Fetched exercises:', data); // Debug log
         setExercises(data.exercises || []);
       } catch (error) {
         console.error('Failed to fetch exercises:', error);
@@ -110,7 +111,7 @@ export default function WorkoutForm({ userId }: WorkoutFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white/10 backdrop-blur-sm p-6 rounded-lg space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label className="block text-white mb-1">Exercise</label>
         <select
@@ -120,7 +121,7 @@ export default function WorkoutForm({ userId }: WorkoutFormProps) {
           required
         >
           <option value="">Select exercise</option>
-          {exercises.map((exercise) => (
+          {Array.isArray(exercises) && exercises.map((exercise) => (
             <option key={exercise.id} value={exercise.id}>
               {exercise.name}
             </option>
