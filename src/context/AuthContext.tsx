@@ -21,18 +21,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
-      // For demo, create a mock user
+      // Mock authentication - in a real app, this would be an API call
       const mockUser = {
         id: '1',
         email,
         name: email.split('@')[0]
       }
 
-      // Set auth token - Note: setting both localStorage and cookie for middleware
-      localStorage.setItem('token', 'demo-token')
-      document.cookie = 'auth_token=demo-token; path=/'
+      // Set authentication token in cookie for middleware
+      document.cookie = 'auth_token=demo-token; path=/;'
 
-      // Set user
+      // Set user in state
       setUser(mockUser)
     } catch (error) {
       console.error('Login error:', error)
@@ -41,9 +40,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const logout = () => {
-    localStorage.removeItem('token')
+    // Clear authentication
     document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT'
     setUser(null)
+    window.location.href = '/'
   }
 
   return (

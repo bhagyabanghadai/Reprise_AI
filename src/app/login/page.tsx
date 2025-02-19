@@ -24,10 +24,9 @@ export default function LoginPage() {
 
     try {
       await login(email, password)
-
-      // Get the redirect URL from the query parameters, default to dashboard
       const from = searchParams.get('from') || '/dashboard'
-      router.push(from)
+      // Use replace instead of push to avoid back button issues
+      router.replace(from)
     } catch (error) {
       console.error('Login failed:', error)
       alert('Login failed. Please try again.')

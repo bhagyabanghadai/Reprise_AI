@@ -5,22 +5,22 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get('auth_token')?.value
   const path = request.nextUrl.pathname
 
-  // List of protected routes that require authentication
+  // Protected routes that require authentication
   const protectedRoutes = ['/dashboard', '/workouts', '/profile']
 
-  // List of auth routes that should redirect to dashboard if already logged in
+  // Auth routes that should redirect to dashboard if logged in
   const authRoutes = ['/login', '/signup']
 
-  // Check if the requested path is a protected route
+  // Check if the current path is protected
   const isProtectedRoute = protectedRoutes.some(route => path.startsWith(route))
   const isAuthRoute = authRoutes.some(route => path === route)
 
-  // If trying to access auth routes with token, redirect to dashboard
+  // If user is logged in and tries to access login/signup, redirect to dashboard
   if (isAuthRoute && token) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
-  // If trying to access protected route without token, redirect to login
+  // If user is not logged in and tries to access protected route, redirect to login
   if (isProtectedRoute && !token) {
     const loginUrl = new URL('/login', request.url)
     loginUrl.searchParams.set('from', path)
