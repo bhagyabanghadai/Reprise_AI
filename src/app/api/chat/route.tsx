@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import OpenAI from 'openai';
 
 const SYSTEM_PROMPT = `You are an expert AI fitness coach specializing in:
 1. Strength training and powerlifting technique
@@ -14,17 +15,22 @@ Base your responses on current scientific understanding of exercise physiology a
 
 export async function POST(request: Request) {
   try {
-    const { message } = await request.json();
-    if (!message) {
+    // Validate request
+    const body = await request.json();
+    const { message } = body;
+
+    if (!message || typeof message !== 'string') {
+      console.error('Invalid request: Message is required and must be a string');
       return NextResponse.json(
-        { error: 'Message is required' },
+        { error: 'Invalid request: Message is required' },
         { status: 400 }
       );
     }
 
+    // Check API key
     const apiKey = process.env.LLAMA_API_KEY;
     if (!apiKey) {
-      console.error('LLAMA_API_KEY not configured');
+      console.error('Missing LLAMA_API_KEY environment variable');
       return NextResponse.json(
         { error: 'AI service is not properly configured' },
         { status: 500 }
@@ -32,55 +38,54 @@ export async function POST(request: Request) {
     }
 
     try {
-      const response = await fetch('https://api.llama.ai/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: "llama-7b-chat",
-          messages: [
-            {
-              role: "system",
-              content: SYSTEM_PROMPT
-            },
-            {
-              role: "user",
-              content: message
-            }
-          ],
-          temperature: 0.7,
-          max_tokens: 500,
-          top_p: 0.95,
-          frequency_penalty: 0.5,
-          presence_penalty: 0.5,
-        }),
+      console.log('Initializing Nvidia Llama client...');
+      const client = new OpenAI({
+        baseURL: "https://integrate.api.nvidia.com/v1",
+        apiKey: apiKey
       });
 
-      if (!response.ok) {
-        throw new Error(`API returned status ${response.status}`);
+      console.log('Sending request to Nvidia Llama API...');
+      const completion = await client.chat.completions.create({
+        model: "nvidia/llama-3.1-nemotron-70b-instruct",
+        messages: [
+          {
+            role: "system",
+            content: SYSTEM_PROMPT
+          },
+          {
+            role: "user",
+            content: message
+          }
+        ],
+        temperature: 0.7,
+        top_p: 1,
+        max_tokens: 1024
+      });
+
+      console.log('Received response from Nvidia Llama API');
+
+      if (!completion.choices || !completion.choices[0]?.message?.content) {
+        throw new Error('Invalid response format from AI service');
       }
 
-      const data = await response.json();
-      const reply = data.choices[0].message.content;
+      const reply = completion.choices[0].message.content;
 
       return NextResponse.json({
         message: reply,
         metadata: {
-          modelUsed: "llama-7b-chat",
+          modelUsed: "nvidia/llama-3.1-nemotron-70b-instruct",
           timestamp: new Date().toISOString(),
         }
       });
-    } catch (error) {
-      console.error('Llama API request failed:', error);
+    } catch (error: any) {
+      console.error('Nvidia Llama API request failed:', error.message);
       return NextResponse.json(
         { error: 'Failed to get AI response. Please try again.' },
         { status: 503 }
       );
     }
-  } catch (error) {
-    console.error('Chat API error:', error);
+  } catch (error: any) {
+    console.error('Chat API error:', error.message);
     return NextResponse.json(
       { error: 'Failed to process message. Please try again.' },
       { status: 500 }
