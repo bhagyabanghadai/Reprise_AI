@@ -2,14 +2,24 @@ import { drizzle } from 'drizzle-orm/vercel-postgres';
 import { sql } from '@vercel/postgres';
 import { exercises, workoutLogs, progressionHistory, userStats } from './schema';
 
-// Get database URL from environment
-const db = drizzle(sql);
+// Initialize the database with explicit error handling
+const createDb = () => {
+  try {
+    return drizzle(sql);
+  } catch (error) {
+    console.error('Failed to initialize database:', error);
+    throw error;
+  }
+};
 
-// Create a function to test the database connection
+export const db = createDb();
+
+// Test database connection
 export async function testConnection() {
   try {
     const result = await sql`SELECT NOW()`;
-    return !!result;
+    console.log('Database connection successful:', result);
+    return true;
   } catch (error) {
     console.error('Database connection error:', error);
     return false;
@@ -30,4 +40,4 @@ export type UserStats = typeof userStats.$inferSelect;
 export type NewUserStats = typeof userStats.$inferInsert;
 
 // Export table schemas and db instance
-export { exercises, workoutLogs, progressionHistory, userStats, db };
+export { exercises, workoutLogs, progressionHistory, userStats };
