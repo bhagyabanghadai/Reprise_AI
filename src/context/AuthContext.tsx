@@ -21,6 +21,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
+      console.log('Login attempt:', email)
+
       // Mock authentication - in a real app, this would be an API call
       const mockUser = {
         id: '1',
@@ -29,10 +31,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       // Set authentication token in cookie for middleware
-      document.cookie = 'auth_token=demo-token; path=/;'
+      document.cookie = 'auth_token=demo-token; path=/; max-age=3600'
+      console.log('Auth token set:', document.cookie)
 
       // Set user in state
       setUser(mockUser)
+      console.log('User set in state:', mockUser)
     } catch (error) {
       console.error('Login error:', error)
       throw error
