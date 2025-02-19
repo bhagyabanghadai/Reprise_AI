@@ -5,15 +5,16 @@ import { motion } from 'framer-motion'
 import { useAuth } from '@/context/AuthContext'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
-import { 
-  Dumbbell, Activity, LineChart, 
-  Brain, Shield, Clock, Heart 
+import {
+  Dumbbell, Activity, LineChart,
+  Brain, Shield, Clock, Heart
 } from 'lucide-react'
 import WorkoutForm from '@/components/WorkoutForm'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/use-toast'
 import { AIChat } from '@/components/ChatBox'
+import { useRouter } from 'next/navigation';
 
 interface WorkoutLog {
   id: number
@@ -48,6 +49,7 @@ export default function Dashboard() {
     recoveryScore: 0
   })
   const { toast } = useToast()
+  const router = useRouter();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -62,7 +64,7 @@ export default function Dashboard() {
           // Calculate progress stats
           const stats = {
             totalWorkouts: data.logs.length,
-            totalVolume: data.logs.reduce((acc: number, log: WorkoutLog) => 
+            totalVolume: data.logs.reduce((acc: number, log: WorkoutLog) =>
               acc + (log.sets * log.reps * log.weight), 0),
             strengthScore: 85, // This will be calculated by AI
             recoveryScore: 90 // This will be calculated by AI
@@ -157,11 +159,11 @@ export default function Dashboard() {
                   <h2 className="text-2xl font-semibold text-cyan-300 flex items-center">
                     <Dumbbell className="mr-2" /> Workout Tracker
                   </h2>
-                  <Button 
-                    onClick={() => setShowWorkoutForm(!showWorkoutForm)}
+                  <Button
+                    onClick={() => router.push('/workouts/log')}
                     className="bg-cyan-500 hover:bg-cyan-600"
                   >
-                    {showWorkoutForm ? 'Close Form' : 'Log Workout'}
+                    Log Workout
                   </Button>
                 </div>
 
