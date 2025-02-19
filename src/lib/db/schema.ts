@@ -1,4 +1,4 @@
-import { serial, text, timestamp, integer, decimal, pgTable, boolean } from 'drizzle-orm/pg-core';
+import { serial, text, timestamp, integer, decimal, pgTable, boolean, jsonb } from 'drizzle-orm/pg-core';
 
 export const exercises = pgTable('exercises', {
   id: serial('id').primaryKey(),
@@ -6,6 +6,21 @@ export const exercises = pgTable('exercises', {
   description: text('description'),
   category: text('category').notNull(), // e.g., 'strength', 'cardio'
   muscleGroup: text('muscle_group').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const userProfiles = pgTable('user_profiles', {
+  id: serial('id').primaryKey(),
+  userId: text('user_id').notNull(),
+  age: integer('age'),
+  weight: decimal('weight'), // in kg
+  height: decimal('height'), // in cm
+  fitnessLevel: text('fitness_level'), // beginner, intermediate, advanced
+  fitnessGoals: jsonb('fitness_goals'), // array of goals
+  workoutPreference: jsonb('workout_preference'), // preferred days, times, etc
+  equipment: jsonb('available_equipment'), // array of available equipment
+  medicalConditions: jsonb('medical_conditions'), // any health considerations
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
@@ -34,6 +49,17 @@ export const progressionHistory = pgTable('progression_history', {
   progressionDate: timestamp('progression_date').defaultNow(),
   aiRecommendation: text('ai_recommendation'),
   applied: boolean('applied').default(false),
+});
+
+export const workoutPlans = pgTable('workout_plans', {
+  id: serial('id').primaryKey(),
+  userId: text('user_id').notNull(),
+  planDate: timestamp('plan_date').notNull(),
+  exercises: jsonb('exercises').notNull(), // Array of exercise recommendations
+  focus: text('focus'), // e.g., 'strength', 'hypertrophy', 'endurance'
+  aiNotes: text('ai_notes'), // AI-generated notes about the workout
+  completed: boolean('completed').default(false),
+  createdAt: timestamp('created_at').defaultNow(),
 });
 
 export const userStats = pgTable('user_stats', {
