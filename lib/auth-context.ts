@@ -1,0 +1,3 @@
+import { api } from '@/lib/api'
+
+// ... rest of the auth context code remains the same ...
