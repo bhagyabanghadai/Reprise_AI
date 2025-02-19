@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { useAuth } from '@/context/AuthContext'
 import Header from '@/components/Header'
@@ -23,50 +24,29 @@ interface WorkoutPlan {
   exercises: Exercise[];
 }
 
-interface NutritionPlan {
-  id: string;
-  name: string;
-  description: string;
-}
-
 export default function DashboardPage() {
-  const { user } = useAuth()
-  const [workoutPlan, setWorkoutPlan] = useState<WorkoutPlan | null>(null)
-  const [nutritionPlan, setNutritionPlan] = useState<NutritionPlan | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const { user, isLoading } = useAuth()
+  const router = useRouter()
   const { toast } = useToast()
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (!user?.id) return;
-
-      setIsLoading(true)
-      try {
-        // Fetch workout plan
-        const workoutRes = await fetch(`/api/workout-plan?userId=${user.id}`);
-        if (!workoutRes.ok) {
-          throw new Error('Failed to fetch workout plan');
-        }
-        const workoutData = await workoutRes.json();
-        setWorkoutPlan(workoutData);
-
-      } catch (error) {
-        console.error('Failed to fetch data:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load your fitness data. Please try again.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false)
-      }
+    if (!isLoading && !user) {
+      router.push('/login')
     }
+  }, [user, isLoading, router])
 
-    fetchData()
-  }, [user?.id, toast])
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 via-purple-900 to-cyan-900">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-cyan-500"></div>
+      </div>
+    )
+  }
 
+  // If not authenticated, don't render anything (will redirect in useEffect)
   if (!user) {
-    return null;
+    return null
   }
 
   return (
@@ -105,31 +85,7 @@ export default function DashboardPage() {
               <h2 className="text-2xl font-semibold mb-4 text-cyan-300 flex items-center">
                 <Activity className="mr-2" /> Today's Plan
               </h2>
-              {isLoading ? (
-                <div className="animate-pulse space-y-4">
-                  <div className="h-4 bg-gray-300/20 rounded w-3/4"></div>
-                  <div className="h-4 bg-gray-300/20 rounded w-1/2"></div>
-                  <div className="h-4 bg-gray-300/20 rounded w-5/6"></div>
-                </div>
-              ) : workoutPlan ? (
-                <>
-                  <h3 className="text-xl font-semibold text-white mb-2">{workoutPlan.name}</h3>
-                  <div className="space-y-4">
-                    {workoutPlan.exercises && (
-                      <ul className="space-y-2">
-                        {workoutPlan.exercises.map((exercise) => (
-                          <li key={exercise.id} className="flex items-center text-gray-300">
-                            <span className="w-2 h-2 bg-cyan-400 rounded-full mr-2"></span>
-                            {exercise.name} - {exercise.muscleGroup}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                </>
-              ) : (
-                <p className="text-gray-300">No workout planned for today. Create one!</p>
-              )}
+              <p className="text-gray-300">No workout planned for today. Create one!</p>
             </motion.div>
           </div>
 

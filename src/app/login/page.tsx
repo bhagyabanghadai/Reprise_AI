@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/context/AuthContext'
@@ -17,30 +17,35 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { login } = useAuth()
+  const { login, user, isLoading } = useAuth()
   const { toast } = useToast()
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (!isLoading && user) {
+      router.push('/dashboard')
+    }
+  }, [user, isLoading, router])
+
+  // If still loading auth state, show loading spinner
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 via-purple-900 to-cyan-900">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-cyan-500"></div>
+      </div>
+    )
+  }
+
+  // If already authenticated, don't render anything (will redirect in useEffect)
+  if (user) {
+    return null
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
 
     try {
-      // First, try to authenticate with the API
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to login')
-      }
-
-      // If API call succeeds, update auth context
       await login(email, password)
 
       toast({
@@ -48,7 +53,7 @@ export default function LoginPage() {
         description: "Login successful! Redirecting...",
       })
 
-      // Get the redirect URL
+      // Get the redirect URL from query params or default to dashboard
       const from = searchParams.get('from') || '/dashboard'
       router.push(from)
     } catch (error: any) {
