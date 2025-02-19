@@ -54,9 +54,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Store email for session persistence
       localStorage.setItem('user_email', email)
 
-      // Set authentication token in cookie for middleware
-      document.cookie = `auth_token=demo-token; path=/; max-age=3600`
-
       // Set user in state
       setUser(mockUser)
 

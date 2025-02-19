@@ -25,21 +25,36 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      await login(email, password)
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      })
 
-      // After successful login, get the redirect URL
-      const from = searchParams.get('from') || '/dashboard'
+      const data = await response.json()
 
-      // Use a small delay to ensure cookie is set
-      setTimeout(() => {
-        window.location.href = from
-      }, 100)
+      if (!response.ok) {
+        throw new Error(data.error || 'Login failed')
+      }
 
-    } catch (error) {
+      if (data.success) {
+        await login(email, password)
+
+        // After successful login, get the redirect URL
+        const from = searchParams.get('from') || '/dashboard'
+
+        // Use a small delay to ensure cookie is set
+        setTimeout(() => {
+          window.location.href = from
+        }, 100)
+      }
+    } catch (error: any) {
       console.error('Login failed:', error)
       toast({
         title: "Error",
-        description: "Login failed. Please try again.",
+        description: error.message || "Login failed. Please try again.",
         variant: "destructive"
       })
     } finally {
