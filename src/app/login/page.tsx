@@ -9,6 +9,7 @@ import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Loader2 } from 'lucide-react'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -25,7 +26,7 @@ export default function Login() {
 
     try {
       await login(email, password)
-      router.push('/dashboard')
+      // Redirect is handled in the AuthContext after successful login
     } catch (err) {
       setError('Invalid email or password')
     } finally {
@@ -55,7 +56,8 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full h-12 bg-white/10 border-0 focus:ring-2 focus:ring-cyan-500"
+                className="w-full h-12 bg-white/10 border-0 focus:ring-2 focus:ring-cyan-500 text-white"
+                disabled={isLoading}
               />
             </div>
             <div>
@@ -66,16 +68,32 @@ export default function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full h-12 bg-white/10 border-0 focus:ring-2 focus:ring-cyan-500"
+                className="w-full h-12 bg-white/10 border-0 focus:ring-2 focus:ring-cyan-500 text-white"
+                disabled={isLoading}
               />
             </div>
-            {error && <p className="text-red-400 text-sm">{error}</p>}
+            {error && (
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-red-400 text-sm"
+              >
+                {error}
+              </motion.p>
+            )}
             <Button 
               type="submit" 
-              className="w-full h-12 bg-cyan-500 hover:bg-cyan-600 text-white text-lg rounded-md"
+              className="w-full h-12 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white text-lg rounded-md"
               disabled={isLoading}
             >
-              {isLoading ? 'Logging in...' : 'Log In'}
+              {isLoading ? (
+                <div className="flex items-center justify-center">
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  Logging in...
+                </div>
+              ) : (
+                'Log In'
+              )}
             </Button>
           </form>
           <p className="mt-8 text-center text-lg text-gray-300">

@@ -28,12 +28,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check for stored auth token and validate it
     const checkAuth = async () => {
       try {
         const token = localStorage.getItem('auth_token');
+
         if (!token) {
-          // If no token and not on login/signup page, redirect to login
           const path = window.location.pathname;
           if (path !== '/login' && path !== '/signup' && path !== '/') {
             router.push('/login');
@@ -42,14 +41,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        // For demo, we'll use mock data
-        setUser({
+        // For demo purposes, we'll create a mock user
+        const mockUser = {
           id: '1',
           name: 'Demo User',
           email: 'demo@example.com'
-        });
+        };
 
-        // If logged in and on login/signup page, redirect to dashboard
+        setUser(mockUser);
+
+        // Redirect if on auth pages
         const path = window.location.pathname;
         if (path === '/login' || path === '/signup') {
           router.push('/dashboard');
@@ -57,6 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch (error) {
         console.error('Auth check failed:', error);
         localStorage.removeItem('auth_token');
+        setUser(null);
       } finally {
         setIsLoading(false);
       }
@@ -68,21 +70,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     try {
       setIsLoading(true);
-      // TODO: Implement actual login API call
-      // For now, using mock data
-      const mockUser = {
-        id: '1',
-        name: 'Demo User',
-        email: email
-      };
 
-      localStorage.setItem('auth_token', 'mock_token');
-      setUser(mockUser);
-      toast({
-        title: "Welcome back!",
-        description: "You've successfully logged in.",
-      });
-      router.push('/dashboard');
+      // For demo purposes, we'll simulate a successful login
+      // In production, this would be an actual API call
+      if (email && password) {
+        const mockUser = {
+          id: '1',
+          name: 'Demo User',
+          email: email
+        };
+
+        // Store auth token
+        localStorage.setItem('auth_token', 'mock_token');
+        setUser(mockUser);
+
+        toast({
+          title: "Welcome back!",
+          description: "You've successfully logged in.",
+        });
+
+        // Redirect to dashboard
+        router.push('/dashboard');
+      } else {
+        throw new Error('Invalid credentials');
+      }
     } catch (error) {
       console.error('Login failed:', error);
       toast({
@@ -90,6 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         description: "Please check your credentials and try again.",
         variant: "destructive",
       });
+      throw error; // Re-throw to be handled by the login form
     } finally {
       setIsLoading(false);
     }
@@ -98,21 +110,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signup = async (name: string, email: string, password: string) => {
     try {
       setIsLoading(true);
-      // TODO: Implement actual signup API call
-      // For now, using mock data
-      const mockUser = {
-        id: '1',
-        name: name,
-        email: email
-      };
 
-      localStorage.setItem('auth_token', 'mock_token');
-      setUser(mockUser);
-      toast({
-        title: "Welcome to Reprise Fitness!",
-        description: "Your account has been created successfully.",
-      });
-      router.push('/dashboard');
+      // For demo purposes, we'll simulate a successful signup
+      if (name && email && password) {
+        const mockUser = {
+          id: '1',
+          name: name,
+          email: email
+        };
+
+        localStorage.setItem('auth_token', 'mock_token');
+        setUser(mockUser);
+
+        toast({
+          title: "Welcome to Reprise Fitness!",
+          description: "Your account has been created successfully.",
+        });
+
+        router.push('/dashboard');
+      } else {
+        throw new Error('Invalid signup data');
+      }
     } catch (error) {
       console.error('Signup failed:', error);
       toast({
@@ -120,6 +138,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         description: "Please try again later.",
         variant: "destructive",
       });
+      throw error;
     } finally {
       setIsLoading(false);
     }
