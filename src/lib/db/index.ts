@@ -2,14 +2,8 @@ import { drizzle } from 'drizzle-orm/vercel-postgres';
 import { sql } from '@vercel/postgres';
 import { exercises, workoutLogs, progressionHistory, userStats } from './schema';
 
-const DATABASE_URL = process.env.DATABASE_URL;
-
-if (!DATABASE_URL) {
-  throw new Error("DATABASE_URL environment variable is not set");
-}
-
-// Initialize the database connection
-export const db = drizzle(sql(DATABASE_URL));
+// Get database URL from environment
+const db = drizzle(sql);
 
 // Create a function to test the database connection
 export async function testConnection() {
@@ -35,5 +29,5 @@ export type NewProgressionHistory = typeof progressionHistory.$inferInsert;
 export type UserStats = typeof userStats.$inferSelect;
 export type NewUserStats = typeof userStats.$inferInsert;
 
-// Export table schemas
-export { exercises, workoutLogs, progressionHistory, userStats };
+// Export table schemas and db instance
+export { exercises, workoutLogs, progressionHistory, userStats, db };
