@@ -25,6 +25,7 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
+      // First, try to authenticate with the API
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -36,23 +37,20 @@ export default function LoginPage() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to get response')
+        throw new Error(data.error || 'Failed to login')
       }
 
-      // Login succeeded
+      // If API call succeeds, update auth context
+      await login(email, password)
+
       toast({
         title: "Success",
         description: "Login successful! Redirecting...",
       })
 
-      // After successful login, update auth context
-      await login(email, password)
-
       // Get the redirect URL
       const from = searchParams.get('from') || '/dashboard'
-
-      // Force a full page refresh to ensure cookie is properly set
-      window.location.replace(from)
+      router.push(from)
     } catch (error: any) {
       console.error('Login failed:', error)
       toast({

@@ -28,10 +28,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const response = await fetch('/api/auth/me')
         if (response.ok) {
           const data = await response.json()
-          setUser(data.user)
+          if (data.user) {
+            setUser(data.user)
+          } else {
+            setUser(null)
+          }
+        } else {
+          setUser(null)
         }
       } catch (error) {
         console.error('Auth check failed:', error)
+        setUser(null)
       } finally {
         setIsLoading(false)
       }
@@ -42,12 +49,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
-      // Update user state immediately after successful API call
-      setUser({
-        id: '1',
-        email,
-        name: email.split('@')[0]
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
       })
+
+      if (!response.ok) {
+        throw new Error('Login failed')
+      }
+
+      const data = await response.json()
+      setUser(data.user)
     } catch (error) {
       console.error('Login error:', error)
       throw error

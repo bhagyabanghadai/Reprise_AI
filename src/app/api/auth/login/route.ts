@@ -7,8 +7,15 @@ export async function POST(request: Request) {
 
     // Mock authentication - replace with real authentication logic
     if (email && password) {
-      // Set the auth token in an HTTP-only cookie
-      cookies().set('auth_token', 'demo-token', {
+      // Only set the auth token after successful authentication
+      const cookieStore = cookies()
+      cookieStore.set('auth_token', '', { // Clear any existing token
+        maxAge: 0,
+        path: '/',
+      })
+
+      // Set the new token
+      cookieStore.set('auth_token', 'demo-token', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
