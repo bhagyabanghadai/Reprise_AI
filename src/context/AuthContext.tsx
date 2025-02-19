@@ -32,23 +32,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const checkAuth = async () => {
       try {
         const token = localStorage.getItem('auth_token');
-        if (token) {
-          // For now, we'll use mock data
-          setUser({
-            id: '1',
-            name: 'Demo User',
-            email: 'demo@example.com'
-          });
+        if (!token) {
+          // If no token and not on login/signup page, redirect to login
+          const path = window.location.pathname;
+          if (path !== '/login' && path !== '/signup' && path !== '/') {
+            router.push('/login');
+          }
+          setIsLoading(false);
+          return;
+        }
+
+        // For demo, we'll use mock data
+        setUser({
+          id: '1',
+          name: 'Demo User',
+          email: 'demo@example.com'
+        });
+
+        // If logged in and on login/signup page, redirect to dashboard
+        const path = window.location.pathname;
+        if (path === '/login' || path === '/signup') {
+          router.push('/dashboard');
         }
       } catch (error) {
         console.error('Auth check failed:', error);
+        localStorage.removeItem('auth_token');
       } finally {
         setIsLoading(false);
       }
     };
 
     checkAuth();
-  }, []);
+  }, [router]);
 
   const login = async (email: string, password: string) => {
     try {
