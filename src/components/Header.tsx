@@ -1,10 +1,10 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { Button } from '../components/ui/button'
+import { Button } from './ui/button'
 
 export default function Header() {
   return (
-    <header className="py-4 px-6">
+    <header className="py-4 px-6 absolute top-0 left-0 right-0 z-50">
       <nav className="container mx-auto flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
           <Image 
@@ -25,12 +25,12 @@ export default function Header() {
         </div>
 
         <div className="flex items-center gap-4">
-          <Link href="/login" passHref>
+          <Link href="/login">
             <Button variant="ghost" className="text-white hover:text-[#00D1C7]">
               Log In
             </Button>
           </Link>
-          <Link href="/signup" passHref>
+          <Link href="/signup">
             <Button className="bg-[#00D1C7] hover:bg-[#00B5AC] text-white">
               Sign Up
             </Button>
