@@ -30,29 +30,34 @@ export default function Header() {
 
         <div className="flex items-center gap-4">
           {user ? (
-            <>
-              <Button
-                variant="ghost"
-                className="flex items-center gap-2 text-white hover:text-[#00D1C7]"
-                asChild
-              >
-                <Link href="/onboarding">
+            <div className="flex items-center gap-4">
+              <Link href="/dashboard">
+                <Button className="bg-[#00D1C7] hover:bg-[#00B5AC] text-white">
+                  Dashboard
+                </Button>
+              </Link>
+              <Link href="/onboarding">
+                <Button 
+                  variant="ghost"
+                  className="flex items-center gap-2 text-white hover:text-[#00D1C7]"
+                >
                   <User className="w-4 h-4" />
                   Profile
-                </Link>
-              </Button>
-              <Button className="bg-[#00D1C7] hover:bg-[#00B5AC] text-white">
-                Dashboard
-              </Button>
-            </>
+                </Button>
+              </Link>
+            </div>
           ) : (
             <>
-              <Button variant="ghost">
-                <Link href="/login" className="text-white">Log In</Link>
-              </Button>
-              <Button className="bg-[#00D1C7] hover:bg-[#00B5AC] text-white">
-                <Link href="/signup">Sign Up</Link>
-              </Button>
+              <Link href="/login">
+                <Button variant="ghost" className="text-white">
+                  Log In
+                </Button>
+              </Link>
+              <Link href="/signup">
+                <Button className="bg-[#00D1C7] hover:bg-[#00B5AC] text-white">
+                  Sign Up
+                </Button>
+              </Link>
             </>
           )}
         </div>
