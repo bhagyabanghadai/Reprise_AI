@@ -16,7 +16,7 @@ export default function Header() {
           />
           <span className="text-2xl font-bold text-white">Reprise</span>
         </Link>
-        
+
         <div className="hidden md:flex items-center gap-8">
           <Link href="/features" className="text-white hover:text-[#00D1C7] transition">Features</Link>
           <Link href="/pricing" className="text-white hover:text-[#00D1C7] transition">Pricing</Link>
@@ -25,12 +25,16 @@ export default function Header() {
         </div>
 
         <div className="flex items-center gap-4">
-          <Button variant="ghost">
-            <Link href="/login" className="text-white">Log In</Link>
-          </Button>
-          <Button className="bg-[#00D1C7] hover:bg-[#00B5AC] text-white">
-            <Link href="/signup">Sign Up</Link>
-          </Button>
+          <Link href="/login" passHref>
+            <Button variant="ghost" className="text-white hover:text-[#00D1C7]">
+              Log In
+            </Button>
+          </Link>
+          <Link href="/signup" passHref>
+            <Button className="bg-[#00D1C7] hover:bg-[#00B5AC] text-white">
+              Sign Up
+            </Button>
+          </Link>
         </div>
       </nav>
     </header>

@@ -1,14 +1,6 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 
-// This is a mock implementation. In a real app, you'd validate against a database
-const MOCK_USER = {
-  id: '1',
-  name: 'Test User',
-  email: 'test@example.com',
-  password: 'password123' // In real app, this would be hashed
-}
-
 export async function POST(request: Request) {
   try {
     const { email, password } = await request.json()
