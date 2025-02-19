@@ -28,15 +28,19 @@ export default function WorkoutForm({ userId }: WorkoutFormProps) {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [isExercisesLoading, setIsExercisesLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
-    // Fetch available exercises
     const fetchExercises = async () => {
       try {
+        setIsExercisesLoading(true);
         const response = await fetch('/api/exercises');
+        if (!response.ok) {
+          throw new Error('Failed to fetch exercises');
+        }
         const data = await response.json();
-        setExercises(data.exercises);
+        setExercises(data.exercises || []);
       } catch (error) {
         console.error('Failed to fetch exercises:', error);
         toast({
@@ -44,6 +48,8 @@ export default function WorkoutForm({ userId }: WorkoutFormProps) {
           description: 'Failed to load exercises. Please try again.',
           variant: 'destructive'
         });
+      } finally {
+        setIsExercisesLoading(false);
       }
     };
 
@@ -94,6 +100,14 @@ export default function WorkoutForm({ userId }: WorkoutFormProps) {
       setIsLoading(false);
     }
   };
+
+  if (isExercisesLoading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="w-8 h-8 animate-spin text-cyan-500" />
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="bg-white/10 backdrop-blur-sm p-6 rounded-lg space-y-4">
