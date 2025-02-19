@@ -36,20 +36,23 @@ export default function LoginPage() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Login failed')
+        throw new Error(data.error || 'Failed to get response')
       }
 
-      if (data.success) {
-        await login(email, password)
+      // Login succeeded
+      toast({
+        title: "Success",
+        description: "Login successful! Redirecting...",
+      })
 
-        // After successful login, get the redirect URL
-        const from = searchParams.get('from') || '/dashboard'
+      // After successful login, update auth context
+      await login(email, password)
 
-        // Use a small delay to ensure cookie is set
-        setTimeout(() => {
-          window.location.href = from
-        }, 100)
-      }
+      // Get the redirect URL
+      const from = searchParams.get('from') || '/dashboard'
+
+      // Force a full page refresh to ensure cookie is properly set
+      window.location.replace(from)
     } catch (error: any) {
       console.error('Login failed:', error)
       toast({

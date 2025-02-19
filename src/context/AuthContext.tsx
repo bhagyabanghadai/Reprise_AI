@@ -23,20 +23,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Check for existing session on mount
   useEffect(() => {
-    const checkAuth = () => {
-      const token = document.cookie.includes('auth_token=demo-token')
-      if (token) {
-        // If we have a token, set the user
-        const savedEmail = localStorage.getItem('user_email')
-        if (savedEmail) {
-          setUser({
-            id: '1',
-            email: savedEmail,
-            name: savedEmail.split('@')[0]
-          })
+    const checkAuth = async () => {
+      try {
+        const response = await fetch('/api/auth/me')
+        if (response.ok) {
+          const data = await response.json()
+          setUser(data.user)
         }
+      } catch (error) {
+        console.error('Auth check failed:', error)
+      } finally {
+        setIsLoading(false)
       }
-      setIsLoading(false)
     }
 
     checkAuth()
@@ -44,33 +42,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
-      // Mock authentication - in a real app, this would be an API call
-      const mockUser = {
+      // Update user state immediately after successful API call
+      setUser({
         id: '1',
         email,
         name: email.split('@')[0]
-      }
-
-      // Store email for session persistence
-      localStorage.setItem('user_email', email)
-
-      // Set user in state
-      setUser(mockUser)
-
-      // Return to allow the login page to handle redirection
-      return
+      })
     } catch (error) {
       console.error('Login error:', error)
       throw error
     }
   }
 
-  const logout = () => {
-    // Clear authentication
-    document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT'
-    localStorage.removeItem('user_email')
-    setUser(null)
-    window.location.href = '/'
+  const logout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' })
+      setUser(null)
+      window.location.href = '/'
+    } catch (error) {
+      console.error('Logout error:', error)
+    }
   }
 
   return (
