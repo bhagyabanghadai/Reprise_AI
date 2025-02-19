@@ -10,6 +10,7 @@ import Footer from '@/components/Footer'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Loader2 } from 'lucide-react'
+import { useToast } from '@/components/ui/use-toast'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -18,17 +19,32 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false)
   const { login } = useAuth()
   const router = useRouter()
+  const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!email || !password) {
+      setError('Please enter both email and password')
+      return
+    }
+
     setError('')
     setIsLoading(true)
 
     try {
       await login(email, password)
-      // Redirect is handled in the AuthContext after successful login
+      toast({
+        title: "Success!",
+        description: "Logging you in...",
+      })
     } catch (err) {
+      console.error('Login error:', err)
       setError('Invalid email or password')
+      toast({
+        title: "Error",
+        description: "Failed to log in. Please try again.",
+        variant: "destructive"
+      })
     } finally {
       setIsLoading(false)
     }
@@ -58,6 +74,7 @@ export default function Login() {
                 required
                 className="w-full h-12 bg-white/10 border-0 focus:ring-2 focus:ring-cyan-500 text-white"
                 disabled={isLoading}
+                placeholder="Enter your email"
               />
             </div>
             <div>
@@ -70,6 +87,7 @@ export default function Login() {
                 required
                 className="w-full h-12 bg-white/10 border-0 focus:ring-2 focus:ring-cyan-500 text-white"
                 disabled={isLoading}
+                placeholder="Enter your password"
               />
             </div>
             {error && (

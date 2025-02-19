@@ -58,6 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch (error) {
         console.error('Auth check failed:', error);
         localStorage.removeItem('auth_token');
+        document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
         setUser(null);
       } finally {
         setIsLoading(false);
@@ -85,23 +86,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         setUser(mockUser);
 
-        toast({
-          title: "Welcome back!",
-          description: "You've successfully logged in.",
-        });
-
         // Redirect to dashboard
-        router.push('/dashboard');
+        await router.push('/dashboard');
       } else {
         throw new Error('Invalid credentials');
       }
     } catch (error) {
       console.error('Login failed:', error);
-      toast({
-        title: "Login failed",
-        description: "Please check your credentials and try again.",
-        variant: "destructive",
-      });
       throw error;
     } finally {
       setIsLoading(false);
@@ -124,23 +115,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         document.cookie = 'auth_token=mock_token; path=/';
 
         setUser(mockUser);
-
-        toast({
-          title: "Welcome to Reprise Fitness!",
-          description: "Your account has been created successfully.",
-        });
-
-        router.push('/dashboard');
+        await router.push('/dashboard');
       } else {
         throw new Error('Invalid signup data');
       }
     } catch (error) {
       console.error('Signup failed:', error);
-      toast({
-        title: "Signup failed",
-        description: "Please try again later.",
-        variant: "destructive",
-      });
       throw error;
     } finally {
       setIsLoading(false);
@@ -152,10 +132,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
     setUser(null);
     router.push('/');
-    toast({
-      title: "Logged out",
-      description: "You've been successfully logged out.",
-    });
   };
 
   return (
