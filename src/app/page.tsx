@@ -5,8 +5,11 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
+import { AIChat } from '../components/ChatBox'
 
 export default function Home() {
+  const [isChatOpen, setIsChatOpen] = useState(false)
+
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-900 via-purple-900 to-cyan-900">
       <Header />
@@ -83,6 +86,35 @@ export default function Home() {
         </section>
       </main>
       <Footer />
+      <AIChat isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+      {!isChatOpen && (
+        <button
+          onClick={() => setIsChatOpen(true)}
+          className="fixed bottom-4 right-4 p-4 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+        >
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            <span className="sr-only">Open AI Chat</span>
+            <svg
+              className="w-6 h-6 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+              />
+            </svg>
+          </motion.div>
+        </button>
+      )}
     </div>
   )
 }
