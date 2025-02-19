@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react"
 import { Send, Bot, User, Loader2 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
+import ReactMarkdown from 'react-markdown'
 
 interface Message {
   id: string
@@ -83,7 +84,7 @@ export function AIChat({ isOpen, onClose }: AIChatProps) {
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
-      <div className="bg-white dark:bg-gray-900 sm:max-w-[500px] h-[600px] flex flex-col p-0 rounded-lg w-full mx-4">
+      <div className="bg-white dark:bg-gray-900 sm:max-w-[600px] h-[600px] flex flex-col p-0 rounded-lg w-full mx-4">
         <div className="p-4 border-b dark:border-gray-700 flex justify-between items-center">
           <h2 className="text-xl font-semibold">AI Fitness Coach</h2>
           <button 
@@ -119,13 +120,30 @@ export function AIChat({ isOpen, onClose }: AIChatProps) {
                 )}
                 <div
                   className={cn(
-                    "rounded-lg p-3 max-w-[80%]",
+                    "rounded-lg p-3 max-w-[90%]",
                     message.role === 'user' 
                       ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white' 
-                      : 'bg-gray-100 dark:bg-gray-800'
+                      : 'bg-gray-100 dark:bg-gray-800 prose dark:prose-invert max-w-none'
                   )}
                 >
-                  {message.content}
+                  {message.role === 'user' ? (
+                    message.content
+                  ) : (
+                    <ReactMarkdown
+                      className="markdown-content"
+                      components={{
+                        h3: ({ children }) => <h3 className="text-lg font-semibold mt-4 mb-2">{children}</h3>,
+                        ul: ({ children }) => <ul className="space-y-2 my-2">{children}</ul>,
+                        li: ({ children }) => <li className="flex items-start gap-2">
+                          <span className="text-cyan-500">•</span>
+                          <span>{children}</span>
+                        </li>,
+                        p: ({ children }) => <p className="mb-2">{children}</p>,
+                      }}
+                    >
+                      {message.content}
+                    </ReactMarkdown>
+                  )}
                 </div>
                 {message.role === 'user' && (
                   <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">

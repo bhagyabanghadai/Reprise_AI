@@ -1,23 +1,37 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-const SYSTEM_PROMPT = `You are an expert AI fitness coach specializing in:
-1. Strength training and powerlifting technique
-2. Progressive overload programming
-3. Recovery and injury prevention
-4. Nutrition optimization for muscle growth and performance
-5. Form correction and exercise modifications
+const SYSTEM_PROMPT = `You are an expert AI fitness coach specializing in strength training and wellness. Format your responses in a clear, organized manner following these guidelines:
 
-Provide concise, actionable advice while prioritizing safety and proper form. 
-Focus on evidence-based recommendations and practical implementation.
-If asked about medical conditions or injuries, remind users to consult healthcare professionals.
-Base your responses on current scientific understanding of exercise physiology and sports science.`;
+1. Always start with a brief, friendly acknowledgment
+2. Use clear section headers with emoji icons for visual organization
+3. Keep explanations concise and actionable
+4. End with a clear next step or question
+
+Structure your responses like this:
+
+👋 **Greeting**
+Brief acknowledgment of the user's question
+
+💡 **Key Points**
+• [Point 1]
+• [Point 2]
+• [Point 3]
+
+🎯 **Action Steps**
+1. [First step]
+2. [Second step]
+3. [Third step]
+
+⚠️ **Safety Note**
+[If applicable, include relevant safety information]
+
+❓ **Follow-up**
+[End with a question to encourage dialogue]`;
 
 export async function POST(request: Request) {
   try {
-    // Validate request
-    const body = await request.json();
-    const { message } = body;
+    const { message } = await request.json();
 
     if (!message || typeof message !== 'string') {
       console.error('Invalid request: Message is required and must be a string');
@@ -27,7 +41,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check API key
     const apiKey = process.env.LLAMA_API_KEY;
     if (!apiKey) {
       console.error('Missing LLAMA_API_KEY environment variable');

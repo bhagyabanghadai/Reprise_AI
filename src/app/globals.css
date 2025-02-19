@@ -3,6 +3,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 /* Base styles */
 @layer base {
   body {
@@ -61,6 +62,61 @@
   /* Hero section styles */
   .hero-section {
     @apply py-20 px-4 text-center space-y-8;
+  }
+
+  /* Chat message styling */
+  .markdown-content {
+    @apply text-gray-800 dark:text-gray-200;
+  }
+
+  .markdown-content h3 {
+    @apply text-lg font-semibold mt-4 mb-2 text-cyan-600 dark:text-cyan-400;
+  }
+
+  .markdown-content ul {
+    @apply space-y-2 my-2;
+  }
+
+  .markdown-content li {
+    @apply flex items-start gap-2;
+  }
+
+  .markdown-content p {
+    @apply mb-2 leading-relaxed;
+  }
+
+  .markdown-content strong {
+    @apply font-semibold text-cyan-700 dark:text-cyan-300;
+  }
+
+  /* Emoji styling */
+  .markdown-content p:first-of-type {
+    @apply text-xl mb-4;
+  }
+
+  /* Section styling */
+  .markdown-content h3 + p,
+  .markdown-content h3 + ul {
+    @apply mt-2;
+  }
+
+  /* Action steps styling */
+  .markdown-content ol {
+    @apply space-y-2 my-2 ml-6 list-decimal;
+  }
+
+  .markdown-content ol li {
+    @apply pl-2;
+  }
+
+  /* Safety note styling */
+  .markdown-content h3:contains('⚠️') {
+    @apply text-amber-600 dark:text-amber-400;
+  }
+
+  /* Follow-up question styling */
+  .markdown-content h3:contains('❓') + p {
+    @apply italic text-cyan-600 dark:text-cyan-400;
   }
 }
 
@@ -150,4 +206,3 @@
 .error-input {
   @apply border-red-500 focus:ring-red-500;
 }
-
