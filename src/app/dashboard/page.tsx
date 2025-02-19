@@ -7,17 +7,26 @@ import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { Dumbbell, Activity, Utensils, Calendar } from 'lucide-react'
 import { api } from '@/lib/api'
+import { useToast } from '@/components/ui/use-toast'
+
+interface Exercise {
+  id: number;
+  name: string;
+  description: string;
+  muscleGroup: string;
+}
 
 interface WorkoutPlan {
-  id: string
-  name: string
-  description: string
+  id: string;
+  name: string;
+  description: string;
+  exercises: Exercise[];
 }
 
 interface NutritionPlan {
-  id: string
-  name: string
-  description: string
+  id: string;
+  name: string;
+  description: string;
 }
 
 export default function Dashboard() {
@@ -25,25 +34,44 @@ export default function Dashboard() {
   const [workoutPlan, setWorkoutPlan] = useState<WorkoutPlan | null>(null)
   const [nutritionPlan, setNutritionPlan] = useState<NutritionPlan | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const { toast } = useToast()
 
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true)
       try {
-        const [workoutRes, nutritionRes] = await Promise.all([
-          api.get('/workout-plan'),
-          api.get('/nutrition-plan')
-        ])
-        setWorkoutPlan(workoutRes.data)
-        setNutritionPlan(nutritionRes.data)
+        // Fetch workout plan
+        const workoutRes = await fetch(`/api/workout-plan?userId=${user?.id}`);
+        if (!workoutRes.ok) {
+          throw new Error('Failed to fetch workout plan');
+        }
+        const workoutData = await workoutRes.json();
+        setWorkoutPlan(workoutData);
+
+        // Fetch nutrition plan
+        const nutritionRes = await fetch(`/api/nutrition-plan?userId=${user?.id}`);
+        if (!nutritionRes.ok) {
+          throw new Error('Failed to fetch nutrition plan');
+        }
+        const nutritionData = await nutritionRes.json();
+        setNutritionPlan(nutritionData);
+
       } catch (error) {
-        console.error('Failed to fetch data:', error)
+        console.error('Failed to fetch data:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load your fitness data. Please try again.",
+          variant: "destructive",
+        });
       } finally {
         setIsLoading(false)
       }
     }
-    fetchData()
-  }, [])
+
+    if (user?.id) {
+      fetchData()
+    }
+  }, [user?.id, toast])
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-900 via-purple-900 to-cyan-900">
@@ -69,12 +97,30 @@ export default function Dashboard() {
                 <Dumbbell className="mr-2" /> Today's Workout
               </h2>
               {isLoading ? (
-                <p className="text-gray-300">Loading your workout plan...</p>
-              ) : (
+                <div className="animate-pulse space-y-4">
+                  <div className="h-4 bg-gray-300/20 rounded w-3/4"></div>
+                  <div className="h-4 bg-gray-300/20 rounded w-1/2"></div>
+                  <div className="h-4 bg-gray-300/20 rounded w-5/6"></div>
+                </div>
+              ) : workoutPlan ? (
                 <>
-                  <h3 className="text-xl font-semibold text-white mb-2">{workoutPlan?.name}</h3>
-                  <p className="text-gray-300">{workoutPlan?.description}</p>
+                  <h3 className="text-xl font-semibold text-white mb-2">{workoutPlan.name}</h3>
+                  <div className="space-y-4">
+                    <p className="text-gray-300">{workoutPlan.description}</p>
+                    {workoutPlan.exercises && (
+                      <ul className="space-y-2">
+                        {workoutPlan.exercises.map((exercise) => (
+                          <li key={exercise.id} className="flex items-center text-gray-300">
+                            <span className="w-2 h-2 bg-cyan-400 rounded-full mr-2"></span>
+                            {exercise.name} - {exercise.muscleGroup}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 </>
+              ) : (
+                <p className="text-gray-300">No workout planned for today. Create one!</p>
               )}
             </motion.div>
             <motion.div
