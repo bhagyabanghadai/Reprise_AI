@@ -10,108 +10,81 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Loader2 } from 'lucide-react'
 
-export default function Login() {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  })
-  const [error, setError] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+export default function LoginPage() {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
   const router = useRouter()
   const { login } = useAuth()
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }))
-  }
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
-    setError('')
+    setLoading(true)
 
     try {
-      if (!formData.email || !formData.password) {
-        throw new Error('Please fill in all fields')
-      }
-
-      await login(formData.email, formData.password)
-      router.push('/dashboard')
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed')
+      await login(email, password)
+      window.location.href = '/dashboard'
+    } catch (error) {
+      console.error('Login failed:', error)
+      alert('Login failed. Please try again.')
     } finally {
-      setIsLoading(false)
+      setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-900 via-purple-900 to-cyan-900">
+    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-cyan-900">
       <Header />
-      <main className="flex-grow flex items-center justify-center py-12">
-        <div className="w-full max-w-md mx-4">
+      <main className="flex-grow flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
           <div className="bg-white/10 backdrop-blur-sm p-8 rounded-lg shadow-xl">
-            <h1 className="text-3xl font-bold mb-6 text-white text-center">
-              Welcome Back
-            </h1>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <h1 className="text-3xl font-bold mb-6 text-white text-center">Login</h1>
+
+            <form onSubmit={handleLogin} className="space-y-4">
               <div>
                 <Input
                   type="email"
-                  name="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="Email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="w-full h-12 bg-white/5 border-white/10 text-white placeholder-white/50"
-                  disabled={isLoading}
+                  className="w-full p-2 bg-white/5 border-white/10 text-white"
                   required
                 />
               </div>
+
               <div>
                 <Input
                   type="password"
-                  name="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   placeholder="Password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="w-full h-12 bg-white/5 border-white/10 text-white placeholder-white/50"
-                  disabled={isLoading}
+                  className="w-full p-2 bg-white/5 border-white/10 text-white"
                   required
                 />
               </div>
 
-              {error && (
-                <div className="bg-red-500/10 border border-red-500/50 text-red-200 px-4 py-2 rounded">
-                  {error}
-                </div>
-              )}
-
               <Button
                 type="submit"
-                className="w-full h-12 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-medium rounded-md"
-                disabled={isLoading}
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white py-2 rounded-md"
               >
-                {isLoading ? (
+                {loading ? (
                   <div className="flex items-center justify-center">
-                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    <span>Logging in...</span>
+                    <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                    Logging in...
                   </div>
                 ) : (
-                  'Log In'
+                  'Login'
                 )}
               </Button>
             </form>
 
-            <div className="mt-6 text-center">
-              <Link 
-                href="/signup"
-                className="text-cyan-400 hover:text-cyan-300 transition-colors"
-              >
-                Don't have an account? Sign up
+            <p className="mt-4 text-center text-white">
+              Don't have an account?{' '}
+              <Link href="/signup" className="text-cyan-400 hover:text-cyan-300">
+                Sign up
               </Link>
-            </div>
+            </p>
           </div>
         </div>
       </main>
