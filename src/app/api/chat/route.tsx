@@ -31,48 +31,54 @@ export async function POST(request: Request) {
       );
     }
 
-    const response = await fetch('https://api.llama-ai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: "llama-7b-chat", // Using Llama's chat-optimized model
-        messages: [
-          {
-            role: "system",
-            content: SYSTEM_PROMPT
-          },
-          {
-            role: "user",
-            content: message
-          }
-        ],
-        temperature: 0.7,
-        max_tokens: 500,
-        top_p: 0.95,
-        frequency_penalty: 0.5,
-        presence_penalty: 0.5,
-      }),
-    });
+    try {
+      const response = await fetch('https://api.llama.ai/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: "llama-7b-chat",
+          messages: [
+            {
+              role: "system",
+              content: SYSTEM_PROMPT
+            },
+            {
+              role: "user",
+              content: message
+            }
+          ],
+          temperature: 0.7,
+          max_tokens: 500,
+          top_p: 0.95,
+          frequency_penalty: 0.5,
+          presence_penalty: 0.5,
+        }),
+      });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Llama API error:', errorData);
-      throw new Error(errorData.error?.message || 'Failed to fetch from Llama API');
-    }
-
-    const data = await response.json();
-    const reply = data.choices[0].message.content;
-
-    return NextResponse.json({
-      message: reply,
-      metadata: {
-        modelUsed: "llama-7b-chat",
-        timestamp: new Date().toISOString(),
+      if (!response.ok) {
+        throw new Error(`API returned status ${response.status}`);
       }
-    });
+
+      const data = await response.json();
+      const reply = data.choices[0].message.content;
+
+      return NextResponse.json({
+        message: reply,
+        metadata: {
+          modelUsed: "llama-7b-chat",
+          timestamp: new Date().toISOString(),
+        }
+      });
+    } catch (error) {
+      console.error('Llama API request failed:', error);
+      return NextResponse.json(
+        { error: 'Failed to get AI response. Please try again.' },
+        { status: 503 }
+      );
+    }
   } catch (error) {
     console.error('Chat API error:', error);
     return NextResponse.json(
