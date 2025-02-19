@@ -21,7 +21,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  // Check for existing session on mount
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -73,7 +72,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await fetch('/api/auth/logout', { method: 'POST' })
       setUser(null)
-      window.location.href = '/'
     } catch (error) {
       console.error('Logout error:', error)
     }
