@@ -11,9 +11,10 @@ import { useToast } from '@/components/ui/use-toast';
 import { 
   Dumbbell, ArrowLeft, Save, PlusCircle, MinusCircle, 
   ChevronDown, ChevronUp, Activity, Clock, Calendar, 
-  BarChart2, Award, CheckCircle
+  BarChart2, Award, CheckCircle, Brain, Zap, RefreshCw
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { WorkoutPlan, AIRecommendation } from '@/lib/ai/workoutRecommendation';
 
 interface Exercise {
   id: number;
@@ -45,16 +46,19 @@ export default function LogWorkoutPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
   const [availableExercises, setAvailableExercises] = useState<Exercise[]>([]);
   const [workoutExercises, setWorkoutExercises] = useState<WorkoutExercise[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [showExerciseSelector, setShowExerciseSelector] = useState(false);
   const [expandedExercise, setExpandedExercise] = useState<number | null>(null);
   const [currentDate] = useState(new Date());
+  const [aiWorkoutPlan, setAiWorkoutPlan] = useState<AIRecommendation | null>(null);
+  const [selectedDay, setSelectedDay] = useState<WorkoutPlan | null>(null);
 
   useEffect(() => {
-    // Fetch exercises from the API
-    const fetchExercises = async () => {
+    // Fetch exercises and AI workout plan from the API
+    const fetchData = async () => {
       try {
         // Fetch all available exercises
         const response = await fetch('/api/exercises');
@@ -67,6 +71,9 @@ export default function LogWorkoutPage() {
         
         if (data.exercises && data.exercises.length > 0) {
           setAvailableExercises(data.exercises);
+          
+          // Fetch AI workout plan
+          await fetchWorkoutPlan();
         }
       } catch (error) {
         console.error('Error fetching exercises:', error);
@@ -80,8 +87,49 @@ export default function LogWorkoutPage() {
       }
     };
 
-    fetchExercises();
-  }, [toast]);
+    fetchData();
+  }, [toast, user]);
+  
+  // Fetch AI workout plan
+  const fetchWorkoutPlan = async () => {
+    try {
+      setIsGeneratingPlan(true);
+      const userId = user?.id || 'user-123'; // Use default ID if user is not logged in
+      
+      const response = await fetch(`/api/workout-plan?userId=${userId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch workout plan');
+      }
+      
+      const data = await response.json();
+      console.log('Fetched workout plan:', data);
+      
+      if (data.success && data.plan) {
+        setAiWorkoutPlan(data.plan);
+        
+        // Get today's day name (Monday, Tuesday, etc.)
+        const dayOfWeek = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+        
+        // Find today's workout plan
+        const todayPlan = data.plan.weeklyPlan.find((day: WorkoutPlan) => day.day === dayOfWeek);
+        if (todayPlan) {
+          setSelectedDay(todayPlan);
+        } else {
+          // If today's plan is not found, use the first day
+          setSelectedDay(data.plan.weeklyPlan[0]);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching workout plan:', error);
+      toast({
+        title: 'AI Plan Generation',
+        description: 'Could not generate personalized plan. You can still add exercises manually.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsGeneratingPlan(false);
+    }
+  };
 
   const toggleExerciseExpand = (exerciseId: number) => {
     if (expandedExercise === exerciseId) {
@@ -109,6 +157,56 @@ export default function LogWorkoutPage() {
     setShowExerciseSelector(false);
     setSearchQuery('');
     setExpandedExercise(exercise.id);
+  };
+
+  // Load a workout plan day
+  const loadWorkoutPlanDay = (day: WorkoutPlan) => {
+    setSelectedDay(day);
+    
+    // Convert workout plan to workout exercises
+    const planExercises: WorkoutExercise[] = [];
+    
+    // Find each exercise in availableExercises
+    for (const planExercise of day.exercises) {
+      const exercise = availableExercises.find(ex => ex.id === planExercise.exerciseId);
+      
+      if (exercise) {
+        // Create sets based on the plan
+        const sets: ExerciseSet[] = [];
+        
+        for (let i = 0; i < planExercise.sets; i++) {
+          sets.push({
+            id: `set-${Date.now()}-${i}`,
+            reps: planExercise.reps,
+            weight: planExercise.weight || 0,
+            timestamp: new Date(),
+            isCompleted: false
+          });
+        }
+        
+        // Add to workout exercises
+        planExercises.push({
+          exerciseId: exercise.id,
+          exercise: exercise,
+          sets: sets,
+          suggestedWeight: planExercise.weight,
+          notes: planExercise.notes || ''
+        });
+      }
+    }
+    
+    // Set the workout exercises
+    setWorkoutExercises(planExercises);
+    
+    // Expand the first exercise
+    if (planExercises.length > 0) {
+      setExpandedExercise(planExercises[0].exerciseId);
+    }
+    
+    toast({
+      title: 'AI Workout Plan',
+      description: `Loaded workout plan for ${day.day}: ${day.focus}`,
+    });
   };
 
   const handleAddSet = (exerciseIndex: number) => {
@@ -354,18 +452,132 @@ export default function LogWorkoutPage() {
 
           {/* Workout Log */}
           <div className="space-y-4">
-            {workoutExercises.length === 0 ? (
+            {/* AI Workout Plan Display - Show this if we have a plan and no exercises added yet */}
+            {workoutExercises.length === 0 && aiWorkoutPlan && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="bg-gradient-to-b from-indigo-900/50 to-purple-900/50 backdrop-blur-md rounded-lg p-6 mb-6 border border-indigo-500/30"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center">
+                    <Brain className="h-6 w-6 text-indigo-400 mr-3" />
+                    <h3 className="text-xl font-bold text-white">AI Workout Plan</h3>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 rounded-full text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/20"
+                    onClick={() => fetchWorkoutPlan()}
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                  </Button>
+                </div>
+                
+                {isGeneratingPlan ? (
+                  <div className="flex justify-center items-center h-32">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500" />
+                  </div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-7 gap-2 mb-4 overflow-x-auto scrollbar-thin scrollbar-thumb-indigo-500 scrollbar-track-transparent">
+                      {aiWorkoutPlan.weeklyPlan.map((day: WorkoutPlan) => (
+                        <div
+                          key={day.day}
+                          onClick={() => loadWorkoutPlanDay(day)}
+                          className={`p-3 rounded-lg cursor-pointer transition-all transform hover:scale-102 ${
+                            selectedDay?.day === day.day
+                              ? 'bg-indigo-600 shadow-lg'
+                              : 'bg-white/5 hover:bg-white/10'
+                          }`}
+                        >
+                          <div className="font-medium text-white text-sm">{day.day}</div>
+                          <div className="text-xs text-indigo-300">{day.focus}</div>
+                          <div className="mt-1 text-xs text-gray-400">{day.exercises.length} exercises</div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {selectedDay && (
+                      <>
+                        <div className="bg-black/20 p-4 rounded-lg mb-4">
+                          <h4 className="font-medium text-white text-lg mb-2">{selectedDay.day}: {selectedDay.focus}</h4>
+                          <div className="space-y-2">
+                            {selectedDay.exercises.map((exercise) => (
+                              <div key={exercise.exerciseId} className="flex justify-between items-center bg-white/5 p-3 rounded-lg">
+                                <div>
+                                  <div className="font-medium text-white">{exercise.name}</div>
+                                  <div className="text-xs text-indigo-300">
+                                    {exercise.sets} sets × {exercise.reps} reps {exercise.weight > 0 ? `at ${exercise.weight}lbs` : ''}
+                                  </div>
+                                  {exercise.notes && (
+                                    <div className="text-xs text-gray-400 mt-1">{exercise.notes}</div>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="flex justify-center">
+                          <Button
+                            onClick={() => {
+                              if (selectedDay) loadWorkoutPlanDay(selectedDay);
+                            }}
+                            className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600"
+                            disabled={!selectedDay}
+                          >
+                            <Zap className="w-4 h-4 mr-2" />
+                            Start This Workout
+                          </Button>
+                        </div>
+                      </>
+                    )}
+
+                    {aiWorkoutPlan.insights.length > 0 && (
+                      <div className="mt-6">
+                        <h4 className="font-medium text-white text-lg mb-2 flex items-center">
+                          <Activity className="h-4 w-4 mr-2 text-indigo-400" /> AI Insights
+                        </h4>
+                        <ul className="list-disc list-inside space-y-1 text-sm text-gray-300">
+                          {aiWorkoutPlan.insights.map((insight, index) => (
+                            <li key={index}>{insight}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </>
+                )}
+              </motion.div>
+            )}
+
+            {workoutExercises.length === 0 && !aiWorkoutPlan ? (
               <div className="bg-white/10 backdrop-blur-md rounded-lg p-8 text-center">
                 <Dumbbell className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-xl font-medium text-white mb-2">No exercises added yet</h3>
                 <p className="text-gray-300 mb-6">Start by adding exercises to your workout</p>
-                <Button 
-                  onClick={() => setShowExerciseSelector(true)}
-                  className="bg-gradient-to-r from-cyan-500 to-blue-500"
-                >
-                  <PlusCircle className="w-4 h-4 mr-2" />
-                  Add Exercise
-                </Button>
+                <div className="flex flex-col sm:flex-row justify-center gap-3">
+                  <Button 
+                    onClick={() => fetchWorkoutPlan()}
+                    className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600"
+                    disabled={isGeneratingPlan}
+                  >
+                    {isGeneratingPlan ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                    ) : (
+                      <Brain className="w-4 h-4 mr-2" />
+                    )}
+                    Generate AI Workout Plan
+                  </Button>
+                  <Button 
+                    onClick={() => setShowExerciseSelector(true)}
+                    className="bg-gradient-to-r from-cyan-500 to-blue-500"
+                  >
+                    <PlusCircle className="w-4 h-4 mr-2" />
+                    Add Exercise Manually
+                  </Button>
+                </div>
               </div>
             ) : (
               workoutExercises.map((workoutExercise, exerciseIndex) => (
