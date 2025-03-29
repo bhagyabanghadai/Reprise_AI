@@ -18,6 +18,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/componen
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/use-toast'
 import { AIChat } from '@/components/ChatBox'
+import AICoach from '@/components/AICoach'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
@@ -388,116 +389,58 @@ export default function Dashboard() {
               </div>
             </motion.div>
 
-            {/* AI Progress Analysis & Muscle Distribution */}
-            <motion.div className="space-y-6">
-              {/* AI Progress Analysis */}
-              <motion.div
-                className="bg-white/10 backdrop-blur-md rounded-lg shadow-xl overflow-hidden border border-white/10"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: 0.4 }}
-              >
-                <div className="p-6">
-                  <h2 className="text-2xl font-semibold mb-6 text-white flex items-center">
-                    <Brain className="mr-2 text-purple-400" /> AI Coach
-                  </h2>
-                  <div className="space-y-4">
-                    {/* Recovery Status */}
-                    <Card className="bg-gradient-to-r from-green-900/30 to-green-700/20 border-green-500/30 hover:border-green-500/50 transition-colors">
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-base text-white flex items-center">
-                          <Shield className="w-5 h-5 mr-2 text-green-400" />
-                          Recovery Status
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-gray-300 text-sm">
-                          Your recovery is optimal. Ready for high-intensity training today.
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* Next Workout Recommendation */}
-                    <Card className="bg-gradient-to-r from-blue-900/30 to-blue-700/20 border-blue-500/30 hover:border-blue-500/50 transition-colors">
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-base text-white flex items-center">
-                          <Clock className="w-5 h-5 mr-2 text-blue-400" />
-                          Next Workout Plan
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-gray-300 text-sm">
-                          Recommended: Upper Body Strength
-                          <ul className="mt-2 space-y-1">
-                            <li>• Bench Press: 4×8 @185lbs</li>
-                            <li>• Overhead Press: 3×10 @135lbs</li>
-                            <li>• Pull-ups: 3×12</li>
-                          </ul>
-                        </div>
-                      </CardContent>
-                      <CardFooter className="pt-0">
-                        <Button className="text-xs bg-blue-600 hover:bg-blue-700 w-full">
-                          Start This Workout
-                        </Button>
-                      </CardFooter>
-                    </Card>
-
-                    {/* Progress Insights */}
-                    <Card className="bg-gradient-to-r from-purple-900/30 to-purple-700/20 border-purple-500/30 hover:border-purple-500/50 transition-colors">
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-base text-white flex items-center">
-                          <LineChart className="w-5 h-5 mr-2 text-purple-400" />
-                          Progress Insights
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-gray-300 text-sm">
-                          Your bench press strength has increased by 12% this month.
-                          Consistency in upper body training is showing results.
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </div>
-              </motion.div>
-              
-              {/* Muscle Group Distribution */}
-              <motion.div
-                className="bg-white/10 backdrop-blur-md rounded-lg shadow-xl overflow-hidden border border-white/10"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: 0.6 }}
-              >
-                <div className="p-6">
-                  <h2 className="text-xl font-semibold mb-4 text-white flex items-center">
-                    <BarChart2 className="mr-2 text-cyan-400" /> Muscle Distribution
-                  </h2>
-                  <div className="space-y-3">
-                    {muscleGroupDistribution.map(group => (
-                      <div key={group.name} className="space-y-1">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-300">{group.name}</span>
-                          <span className="text-white">{group.value}%</span>
-                        </div>
-                        <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                          <div 
-                            className="h-full rounded-full" 
-                            style={{ 
-                              width: `${group.value}%`,
-                              backgroundColor: group.color 
-                            }}
-                          ></div>
-                        </div>
+            {/* Muscle Group Distribution */}
+            <motion.div
+              className="bg-white/10 backdrop-blur-md rounded-lg shadow-xl overflow-hidden border border-white/10"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.6 }}
+            >
+              <div className="p-6">
+                <h2 className="text-xl font-semibold mb-4 text-white flex items-center">
+                  <BarChart2 className="mr-2 text-cyan-400" /> Muscle Distribution
+                </h2>
+                <div className="space-y-3">
+                  {muscleGroupDistribution.map(group => (
+                    <div key={group.name} className="space-y-1">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-300">{group.name}</span>
+                        <span className="text-white">{group.value}%</span>
                       </div>
-                    ))}
-                  </div>
-                  <div className="mt-4 text-xs text-gray-400">
-                    Based on your last 10 workouts
-                  </div>
+                      <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full rounded-full" 
+                          style={{ 
+                            width: `${group.value}%`,
+                            backgroundColor: group.color 
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </motion.div>
+                <div className="mt-4 text-xs text-gray-400">
+                  Based on your last 10 workouts
+                </div>
+              </div>
             </motion.div>
           </div>
+          
+          {/* New AI Coach Section */}
+          <motion.div
+            className="mt-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.7 }}
+          >
+            <h2 className="text-2xl font-bold text-white mb-4 flex items-center">
+              <Brain className="mr-2 text-purple-400" /> 
+              Your AI Coach
+            </h2>
+            {/* Import and use the AICoach component */}
+            {/* @ts-ignore */}
+            <AICoach userId={user?.id || 'user-123'} recentWorkouts={recentWorkouts} userStats={progressStats} />
+          </motion.div>
         </div>
       </main>
       <Footer />
