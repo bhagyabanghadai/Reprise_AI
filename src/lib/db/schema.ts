@@ -21,6 +21,10 @@ export const userProfiles = pgTable('user_profiles', {
   workoutPreference: jsonb('workout_preference'), // preferred days, times, etc
   equipment: jsonb('available_equipment'), // array of available equipment
   medicalConditions: jsonb('medical_conditions'), // any health considerations
+  strengthLimits: jsonb('strength_limits'), // 1RMs for main lifts
+  trainingHistory: jsonb('training_history'), // past training experience
+  injuryHistory: jsonb('injury_history'), // specific injuries/mobility restrictions
+  recoveryMetrics: jsonb('recovery_metrics'), // sleep, soreness, etc.
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });

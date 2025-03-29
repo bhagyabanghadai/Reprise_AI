@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { db, exercises, testConnection } from '@/lib/db';
+import { db, testConnection } from '@/lib/db';
+import { exercises } from '@/lib/db/schema';
 import { asc } from 'drizzle-orm';
 
 export async function GET() {

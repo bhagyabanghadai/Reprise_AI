@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { db, userProfiles } from '@/lib/db';
+import { db } from '@/lib/db';
+import { userProfiles } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 
 // Simple nutrition recommendations based on user goals

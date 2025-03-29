@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/use-toast'
 import { AIChat } from '@/components/ChatBox'
 import AICoach from '@/components/AICoach'
+import StrengthLimitsCard from '@/components/StrengthLimitsCard'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
@@ -420,6 +421,15 @@ export default function Dashboard() {
                   Based on your last 10 workouts
                 </div>
               </div>
+            </motion.div>
+            
+            {/* Strength Limits Card */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.6 }}
+            >
+              <StrengthLimitsCard userId={user?.id || 'user-123'} />
             </motion.div>
           </div>
           

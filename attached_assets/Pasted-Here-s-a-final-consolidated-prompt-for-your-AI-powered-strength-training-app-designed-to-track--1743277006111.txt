@@ -1,0 +1,101 @@
+Here’s a **final consolidated prompt** for your AI-powered strength training app, designed to track limits, auto-adjust workouts, and drive progressive overload while prioritizing user safety and engagement:
+
+---
+
+### **Prompt: Build an AI-Powered Strength Training App**  
+**Objective**:  
+Create an app that acts as a **24/7 virtual strength coach**, analyzing a user’s lifting limits, logging workouts, and dynamically adjusting their training plan to maximize strength gains while avoiding overtraining.  
+
+---
+
+### **Core Features**  
+
+#### **1. User Onboarding & Limits Setup**  
+- **Initial Assessment**:  
+  - Ask users to input:  
+    - Current 1RMs (or estimate via a "max effort test" protocol).  
+    - Training experience (beginner/intermediate/advanced).  
+    - Equipment available (barbell, dumbbells, etc.).  
+    - Injury history or mobility restrictions.  
+
+#### **2. Dynamic Workout Generation**  
+- **Auto-Adjusting Plans**:  
+  - Base workouts on the user’s **strength limits** (e.g., 80% of 1RM for working sets).  
+  - Example Starting Template:  
+    ```  
+    Week 1:  
+    - Squat: 4x5 @ 80% 1RM  
+    - Bench Press: 4x5 @ 80% 1RM  
+    - Deadlift: 1x5 @ 85% 1RM  
+    ```  
+  - **Auto-Progression**:  
+    - Add 2.5–5 lbs to lifts weekly *if* reps/weight are hit with good form.  
+    - Reduce volume (sets/reps) if fatigue or form breakdown is noted.  
+
+#### **3. Daily Logging & AI Analysis**  
+- **Log Workouts**:  
+  - Users input sets, reps, weight, and notes (e.g., "Felt easy" or "Lower back pain").  
+  - **Voice/Barcode Input**: Log via voice commands or scan plates to auto-fill weights.  
+- **AI Analysis (Weekly)**:  
+  - Track **volume** (sets x reps x weight) and **intensity** (percentage of 1RM).  
+  - Adjust next week’s plan based on:  
+    - Missed reps → Lower weight or volume.  
+    - Consistent PRs → Increase intensity or add accessory work.  
+    - Signs of overtraining → Schedule a deload week.  
+
+#### **4. Adaptive Strength Scaling**  
+- **Progressive Overload Automation**:  
+  - "You hit 4x5 @ 225 lbs on squats → Next week: 4x5 @ 230 lbs."  
+  - "Deadlift stalled at 315 lbs → Add 2x paused reps to improve strength off the floor."  
+- **Weak Point Detection**:  
+  - "Left arm weaker in rows → Add 3x10 single-arm rows to Friday’s workout."  
+
+#### **5. Safety & Recovery Monitoring**  
+- **Form Checks**:  
+  - Use phone camera + AI to analyze squat depth or bench press form (optional).  
+- **Deload Protocol**:  
+  - Auto-schedule deload weeks every 6–8 weeks (e.g., 50% volume).  
+  - "You’ve trained hard for 6 weeks → Next week: 3x3 @ 70% 1RM to recover."  
+
+#### **6. Progress Visualization**  
+- **Interactive Graphs**:  
+  - Show strength trends (e.g., "Squat 1RM increased by 15% in 3 months").  
+  - Track volume per muscle group to prevent imbalances.  
+- **PR Celebrations**:  
+  - Confetti animation + badge for hitting a new 1RM.  
+
+#### **7. Gamification & Motivation**  
+- **Strength Challenges**:  
+  - "Beat your previous month’s volume by 10% to unlock the ‘Beast Mode’ badge."  
+- **Streaks**:  
+  - Track consecutive days/weeks of training (🔥 streak counter).  
+
+---
+
+### **UI/UX Requirements**  
+1. **Quick Log Interface**:  
+   - Large buttons for +/- adjustments to weight/reps.  
+   - Swipe to navigate between exercises.  
+2. **Progress Dashboard**:  
+   - At-a-glance graphs showing 1RM trends, volume, and recovery status.  
+3. **AI Chatbot**:  
+   - Dedicated tab to ask questions like, "Why did I stall on bench press?"  
+
+---
+
+### **Example User Flow**  
+1. **Week 1**:  
+   - User logs squats: 4x5 @ 225 lbs (hits all reps).  
+   - **AI Response**: "Great work! Next week: 4x5 @ 230 lbs."  
+2. **Week 3**:  
+   - User misses reps on bench press.  
+   - **AI Response**: "Reduced to 4x4 @ 185 lbs. Added 2x paused reps for better lockout."  
+3. **Week 6**:  
+   - AI schedules a deload: "Recharge week! Train at 70% intensity."  
+
+---
+
+### **Final Notes**  
+This app will balance **aggressive strength gains** with **smart recovery**, ensuring users stay injury-free while pushing their limits. The AI acts as a coach, not just a tracker, by interpreting data to make **proactive adjustments**.  
+
+**Ready to build?** 💪
