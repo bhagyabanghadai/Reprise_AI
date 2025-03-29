@@ -1,11 +1,17 @@
-import { drizzle } from 'drizzle-orm/vercel-postgres';
-import { sql } from '@vercel/postgres';
-import { exercises, workoutLogs, progressionHistory, userStats } from './schema';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
+import { sql } from 'drizzle-orm';
+import { exercises, workoutLogs, progressionHistory, userStats, userProfiles } from './schema';
 
 // Initialize the database with explicit error handling
 const createDb = () => {
   try {
-    return drizzle(sql);
+    if (!process.env.DATABASE_URL) {
+      throw new Error('DATABASE_URL environment variable is not set');
+    }
+    
+    const client = postgres(process.env.DATABASE_URL);
+    return drizzle(client);
   } catch (error) {
     console.error('Failed to initialize database:', error);
     throw error;
@@ -17,7 +23,12 @@ export const db = createDb();
 // Test database connection
 export async function testConnection() {
   try {
-    const result = await sql`SELECT NOW()`;
+    if (!process.env.DATABASE_URL) {
+      throw new Error('DATABASE_URL environment variable is not set');
+    }
+    
+    const client = postgres(process.env.DATABASE_URL);
+    const result = await client`SELECT NOW()`;
     console.log('Database connection successful:', result);
     return true;
   } catch (error) {
@@ -39,5 +50,9 @@ export type NewProgressionHistory = typeof progressionHistory.$inferInsert;
 export type UserStats = typeof userStats.$inferSelect;
 export type NewUserStats = typeof userStats.$inferInsert;
 
+// Export types for user profiles
+export type UserProfile = typeof userProfiles.$inferSelect;
+export type NewUserProfile = typeof userProfiles.$inferInsert;
+
 // Export table schemas and db instance
-export { exercises, workoutLogs, progressionHistory, userStats };
+export { exercises, workoutLogs, progressionHistory, userStats, userProfiles };

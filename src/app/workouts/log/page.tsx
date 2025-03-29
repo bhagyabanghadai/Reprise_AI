@@ -68,25 +68,104 @@ export default function LogWorkoutPage() {
   ];
 
   useEffect(() => {
-    // This would be replaced with an actual API call to get AI recommendations
-    setPlannedExercises(mockPlannedWorkout);
-    
-    // Initialize workout logs
-    const initialLogs = mockPlannedWorkout.reduce((acc, exercise) => ({
-      ...acc,
-      [exercise.id]: {
-        exerciseId: exercise.id,
-        sets: exercise.sets,
-        reps: exercise.reps,
-        weight: exercise.suggestedWeight,
-        rpe: 0,
-        notes: ''
+    // Fetch exercises from the API
+    const fetchExercises = async () => {
+      try {
+        // First try to get user's workout plan
+        const response = await fetch('/api/exercises');
+        if (!response.ok) {
+          throw new Error('Failed to fetch exercises');
+        }
+        
+        const data = await response.json();
+        console.log('Fetched exercises:', data);
+        
+        if (data.exercises && data.exercises.length > 0) {
+          // Create a workout plan with the exercises
+          // For now, we'll just use 3 random exercises
+          const randomExercises = [...data.exercises]
+            .sort(() => 0.5 - Math.random())
+            .slice(0, 3)
+            .map((exercise: any, index: number) => ({
+              id: exercise.id,
+              name: exercise.name,
+              sets: 3 + Math.floor(Math.random() * 2), // 3-4 sets
+              reps: 8 + Math.floor(Math.random() * 5), // 8-12 reps
+              suggestedWeight: 50 + Math.floor(Math.random() * 100), // 50-150 lbs
+              notes: `Focus on proper form for ${exercise.name}`
+            }));
+          
+          setPlannedExercises(randomExercises);
+          
+          // Initialize workout logs
+          const initialLogs = randomExercises.reduce((acc, exercise) => ({
+            ...acc,
+            [exercise.id]: {
+              exerciseId: exercise.id,
+              sets: exercise.sets,
+              reps: exercise.reps,
+              weight: exercise.suggestedWeight,
+              rpe: 0,
+              notes: ''
+            }
+          }), {});
+          
+          setWorkoutLogs(initialLogs);
+        } else {
+          // Fallback to mock data if no exercises are found
+          toast({
+            title: 'Notice',
+            description: 'Using default exercises as no exercise data was found.',
+          });
+          setPlannedExercises(mockPlannedWorkout);
+          
+          // Initialize workout logs with mock data
+          const initialLogs = mockPlannedWorkout.reduce((acc, exercise) => ({
+            ...acc,
+            [exercise.id]: {
+              exerciseId: exercise.id,
+              sets: exercise.sets,
+              reps: exercise.reps,
+              weight: exercise.suggestedWeight,
+              rpe: 0,
+              notes: ''
+            }
+          }), {});
+          
+          setWorkoutLogs(initialLogs);
+        }
+      } catch (error) {
+        console.error('Error fetching exercises:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load exercises. Using default workout.',
+          variant: 'destructive'
+        });
+        
+        // Fallback to mock data
+        setPlannedExercises(mockPlannedWorkout);
+        
+        // Initialize workout logs with mock data
+        const initialLogs = mockPlannedWorkout.reduce((acc, exercise) => ({
+          ...acc,
+          [exercise.id]: {
+            exerciseId: exercise.id,
+            sets: exercise.sets,
+            reps: exercise.reps,
+            weight: exercise.suggestedWeight,
+            rpe: 0,
+            notes: ''
+          }
+        }), {});
+        
+        setWorkoutLogs(initialLogs);
+      } finally {
+        setIsLoading(false);
       }
-    }), {});
-    
-    setWorkoutLogs(initialLogs);
-    setIsLoading(false);
-  }, []);
+    };
+
+    fetchExercises();
+  }, [toast]);
 
   const handleInputChange = (exerciseId: number, field: keyof WorkoutLog, value: string | number) => {
     setWorkoutLogs(prev => ({
