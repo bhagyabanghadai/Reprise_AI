@@ -100,26 +100,26 @@ export default function Dashboard() {
           }
           setProgressStats(stats)
         } else {
-          // Set default stats if API call fails
+          // Set empty stats if no data is available
           setProgressStats({
-            totalWorkouts: 8,
-            totalVolume: 12500,
-            strengthScore: 85,
-            recoveryScore: 90,
-            streak: 12,
-            consistency: 87
+            totalWorkouts: 0,
+            totalVolume: 0,
+            strengthScore: 0,
+            recoveryScore: 0,
+            streak: 0,
+            consistency: 0
           })
         }
       } catch (error) {
         console.error('Failed to fetch data:', error)
-        // Set default stats if API call fails
+        // Set empty stats if API call fails
         setProgressStats({
-          totalWorkouts: 8,
-          totalVolume: 12500,
-          strengthScore: 85,
-          recoveryScore: 90,
-          streak: 12,
-          consistency: 87
+          totalWorkouts: 0,
+          totalVolume: 0,
+          strengthScore: 0,
+          recoveryScore: 0,
+          streak: 0,
+          consistency: 0
         })
       } finally {
         setIsLoading(false)
@@ -148,11 +148,8 @@ export default function Dashboard() {
     })
   }
 
-  // Mock PR data
-  const recentPRs = [
-    { exercise: 'Bench Press', weight: '225 lbs', date: '2 days ago' },
-    { exercise: 'Squat', weight: '315 lbs', date: '1 week ago' },
-  ]
+  // PR data - empty initially until user logs workouts
+  const recentPRs: { exercise: string, weight: string, date: string }[] = []
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-900 via-purple-900 to-cyan-900">
