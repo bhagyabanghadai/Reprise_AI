@@ -456,6 +456,129 @@ You have the following context about the user:${userContext}${workoutContext}`;
       return "I'm having trouble connecting to my AI systems right now. Please try again in a moment, or ask me a different question about your fitness journey.";
     }
   }
+  
+  /**
+   * Generate specialized trainer response that extracts actionable fitness data
+   */
+  async generateTrainerResponse(
+    message: string,
+    chatHistory: { role: string, content: string, metadata?: any }[],
+    userProfile?: UserProfile | null,
+    recentWorkouts?: any[],
+    availableExercises?: any[]
+  ): Promise<string> {
+    try {
+      const userContext = userProfile ? 
+        `\nUSER PROFILE: ${JSON.stringify(userProfile)}` : '';
+      const workoutContext = recentWorkouts && recentWorkouts.length > 0 ? 
+        `\nRECENT WORKOUTS: ${JSON.stringify(recentWorkouts)}` : '';
+      const exerciseContext = availableExercises && availableExercises.length > 0 ?
+        `\nAVAILABLE EXERCISES: ${JSON.stringify(availableExercises)}` : '';
+        
+      const systemPrompt = `You are an advanced AI fitness trainer built to have natural conversations and extract structured data for fitness planning. Your primary mission is to help users set fitness goals, create workout plans, monitor progress, and provide expert guidance - just like a human personal trainer would.
+
+CONVERSATION GUIDELINES:
+1. Be conversational but structured and professional
+2. Use clear section headers with emoji icons when appropriate
+3. Keep explanations practical and actionable
+4. Always respond in a personable way that builds rapport
+5. When appropriate, provide structured data in JSON format (instructions below)
+
+DATA EXTRACTION RULES:
+1. When a user provides information about their fitness goals, preferences, or physical details (height, weight, etc.), you should extract this data as structured JSON.
+2. Include the JSON inside triple backticks with the json tag, like: \`\`\`json
+   {...}
+   \`\`\`
+3. Do NOT mention that you're extracting data - just include the structured data quietly at the end of your response.
+
+STRUCTURED DATA TYPES TO EXTRACT:
+
+1. PROFILE DATA - Extract when user mentions fitness goals, level, preferences:
+\`\`\`json
+{
+  "fitnessGoals": {
+    "primary": "string, e.g. muscle_building, fat_loss, strength, endurance, etc.",
+    "secondary": ["array of secondary goals"]
+  },
+  "fitnessLevel": "beginner|intermediate|advanced",
+  "daysPerWeek": number,
+  "equipment": ["gym|home|minimal|etc"],
+  "height": "height in units specified, or null",
+  "weight": "weight in units specified, or null",
+  "limitations": "any injuries or limitations, or null",
+  "age": number or null
+}
+\`\`\`
+
+2. WORKOUT PLAN - Create when explicitly discussing workout creation:
+\`\`\`json
+{
+  "weeklyPlan": [
+    {
+      "day": "Monday",
+      "focus": "Upper Body",
+      "exercises": [
+        { "name": "Bench Press", "exerciseId": 1, "sets": 3, "reps": 10, "weight": 135, "notes": "Focus on form" }
+      ],
+      "completed": false
+    }
+  ],
+  "insights": ["array of insights"],
+  "suggestions": ["array of suggestions"]
+}
+\`\`\`
+
+3. NUTRITION PLAN - Create when discussing nutrition needs:
+\`\`\`json
+{
+  "dailyCalories": 2500,
+  "macroSplit": {"protein": 180, "carbs": 250, "fat": 80},
+  "mealPlan": [
+    {"meal": "Breakfast", "foods": ["Oatmeal", "Eggs", "Berries"], "macros": {...}}
+  ]
+}
+\`\`\`
+
+IMPORTANT BEHAVIORS:
+- Extract structured data only when relevant and sufficient information is provided
+- Don't force extractions from vague conversations
+- Your personality is supportive, knowledgeable, and motivating
+- Keep conversations natural - the user shouldn't feel like they're filling out a form
+- When asking questions, ask ONE QUESTION AT A TIME to keep conversations focused
+
+You have the following context about the user:${userContext}${workoutContext}${exerciseContext}`;
+      
+      // Prepare the chat history in the right format
+      const formattedHistory = chatHistory.map((msg) => ({
+        role: msg.role as "user" | "assistant" | "system",
+        content: msg.content
+      }));
+      
+      const completion = await this.client.chat.completions.create({
+        model: "nvidia/llama-3.1-nemotron-70b-instruct",
+        messages: [
+          {
+            role: "system",
+            content: systemPrompt
+          },
+          ...formattedHistory,
+          {
+            role: "user",
+            content: message
+          }
+        ],
+        temperature: 0.7,
+        top_p: 1,
+        max_tokens: 1500
+      });
+      
+      return completion.choices[0].message.content || 
+        "I'm having trouble generating a response right now. Please try again in a moment.";
+    } catch (error) {
+      console.error('Error generating trainer response:', error);
+      return "I'm having some trouble right now. Let's try a different approach. Could you tell me a bit more about your fitness goals and experience level?";
+    }
+  }
 }
 
 // Export singleton instance

@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/use-toast'
 import { ImprovedAIChat } from '@/components/ImprovedChatBox'
 import AICoach from '@/components/AICoach'
+import InteractiveAITrainer from '@/components/InteractiveAITrainer'
 import StrengthLimitsCard from '@/components/StrengthLimitsCard'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -447,6 +448,23 @@ export default function Dashboard() {
             {/* Import and use the AICoach component */}
             {/* @ts-ignore */}
             <AICoach userId={user?.id || 'user-123'} recentWorkouts={recentWorkouts} userStats={progressStats} />
+            
+            {/* New Interactive AI Trainer */}
+            <div className="mt-6 pb-4">
+              <h3 className="text-xl font-semibold text-white mb-3 flex items-center">
+                <Zap className="mr-2 text-cyan-400" /> Interactive AI Trainer
+              </h3>
+              <p className="text-gray-300 mb-4">
+                Get personalized workout plans and real-time feedback through natural conversation with your AI trainer.
+              </p>
+              <div className="bg-gray-900/50 border border-gray-700 rounded-lg h-[400px] overflow-hidden">
+                <InteractiveAITrainer 
+                  userId={user?.id || 'user-123'} 
+                  isEmbedded={true}
+                  initialMessage="I'm your personal AI fitness trainer. Ask me anything about your workouts or tell me what your fitness goals are!"
+                />
+              </div>
+            </div>
           </motion.div>
         </div>
       </main>
