@@ -11,8 +11,9 @@ import {
   Calendar, Target, Award, Flame,
   BarChart2, Droplet, TrendingUp, Menu,
   User, Settings, Home, Clipboard, ChevronUp,
-  Search, Zap, Smile, Frown, Meh
+  Search, Zap, Smile, Frown, Meh, MessageSquare
 } from 'lucide-react'
+import AITrainerChat from '@/components/AITrainerChat'
 import WorkoutForm from '@/components/WorkoutForm'
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -494,7 +495,25 @@ export default function Dashboard() {
       <Footer />
 
       {/* AI Chat Integration */}
-      <ImprovedAIChat isOpen={showAIChat} onClose={() => setShowAIChat(false)} />
+      <AITrainerChat 
+        userId={user?.id || 'user-123'} 
+        isOpen={showAIChat} 
+        onClose={() => setShowAIChat(false)} 
+        onProfileUpdate={(profileData) => {
+          console.log('Profile updated:', profileData);
+          toast({
+            title: 'Profile Updated',
+            description: 'Your fitness profile has been updated based on your conversation.',
+          });
+        }}
+        onWorkoutPlanUpdate={(planData) => {
+          console.log('Workout plan updated:', planData);
+          toast({
+            title: 'Workout Plan Created',
+            description: 'A new workout plan has been created for you!',
+          });
+        }}
+      />
       {!showAIChat && (
         <div className="fixed bottom-4 right-4 flex flex-col items-end space-y-2">
           <button
