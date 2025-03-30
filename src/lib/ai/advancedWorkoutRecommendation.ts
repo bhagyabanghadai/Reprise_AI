@@ -260,16 +260,22 @@ function calculateStrengthScore(
   const exerciseWeights: Record<number, number[]> = {};
   
   workoutHistory.forEach(workout => {
-    if (!exerciseWeights[workout.exerciseId]) {
-      exerciseWeights[workout.exerciseId] = [];
+    if (workout.exerciseId === null || workout.exerciseId === undefined) {
+      return; // Skip records with null exerciseId
+    }
+    
+    const exerciseId = workout.exerciseId as number;
+    
+    if (!exerciseWeights[exerciseId]) {
+      exerciseWeights[exerciseId] = [];
     }
     
     // Convert weight to number if it's a string
     const weight = typeof workout.weight === 'string' 
       ? parseFloat(workout.weight) 
-      : workout.weight;
+      : workout.weight || 0; // Use 0 as fallback if weight is null/undefined
       
-    exerciseWeights[workout.exerciseId].push(weight);
+    exerciseWeights[exerciseId].push(weight);
   });
   
   // Calculate average weight for each exercise

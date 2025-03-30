@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -144,49 +144,74 @@ export default function AICoach({ userId, recentWorkouts = [], userStats = {} }:
   ]
 
   useEffect(() => {
-    // Store a reference to the local data to avoid useEffect dependency issues 
-    const localSampleFeedback = sampleFeedback;
-    const localSampleWeeklyPlan = sampleWeeklyPlan;
+    // Make local copies of the data 
+    const feedbackCopy = [...sampleFeedback];
+    const weeklyPlanCopy = [...sampleWeeklyPlan];
     let isMounted = true;
     
     // Simulate loading AI coach data
     const loadCoachData = async () => {
-      setLoading(true)
+      if (!isMounted) return;
+      
+      setLoading(true);
       try {
-        // In a real app, this would fetch from an AI endpoint
-        // For now, we'll use the sample data
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        // In real app, this would be an API call
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Only update state if component is still mounted
-        if (isMounted) {
-          setFeedback(localSampleFeedback)
-          setWeeklyPlan(localSampleWeeklyPlan)
+        if (!isMounted) return;
+        
+        // Try to fetch real data first (but handle gracefully if it fails)
+        try {
+          const response = await fetch(`/api/coach-insights?userId=${userId}`);
+          
+          if (response.ok) {
+            const data = await response.json();
+            
+            if (isMounted && data && data.insights) {
+              setFeedback(data.insights);
+              if (data.weeklyPlan) {
+                setWeeklyPlan(data.weeklyPlan);
+              } else {
+                setWeeklyPlan(weeklyPlanCopy);
+              }
+              setLoading(false);
+              return;
+            }
+          }
+        } catch (apiError) {
+          console.error('Error fetching AI insights:', apiError);
+          // We'll fall back to sample data below
         }
-
+        
+        // Fallback to sample data if API call fails
+        if (isMounted) {
+          setFeedback(feedbackCopy);
+          setWeeklyPlan(weeklyPlanCopy);
+        }
       } catch (error) {
-        console.error('Error loading AI coach data:', error)
+        console.error('Error loading AI coach data:', error);
         if (isMounted) {
           toast({
             title: 'Error',
             description: 'Failed to load AI coach recommendations.',
             variant: 'destructive'
-          })
+          });
         }
       } finally {
         if (isMounted) {
-          setLoading(false)
+          setLoading(false);
         }
       }
-    }
+    };
 
-    loadCoachData()
+    loadCoachData();
     
     // Cleanup function
     return () => {
       isMounted = false;
-    }
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId]) // Only depend on userId to avoid infinite renders
+  }, [userId]); // Only depend on userId to avoid infinite renders
 
   const toggleSection = (section: string) => {
     if (expandedSection === section) {
@@ -197,44 +222,74 @@ export default function AICoach({ userId, recentWorkouts = [], userStats = {} }:
   }
 
   const handleChatSubmit = async () => {
-    if (!chatMessage.trim()) return
+    if (!chatMessage.trim() || loading) return;
 
     // Add user message to chat
-    const userMessage = { role: 'user', content: chatMessage }
+    const userMessage = { role: 'user', content: chatMessage };
     const currentMessage = chatMessage; // Store current message before clearing
-    const currentChatHistory = [...chatHistory, userMessage]; // Create new array with user message
+    const newChatHistory = [...chatHistory, userMessage]; // Create new array with user message
     
-    setChatHistory(currentChatHistory);
+    // Update state immediately to show user message
+    setChatHistory(newChatHistory);
     setChatMessage('');
-
-    // In a real app, this would call the AI API
-    // For now, we'll simulate a response
     setLoading(true);
+    
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // First try to get a response from the AI API
+      let aiResponse = null;
       
-      // Generate a mock response based on the question
-      let response = "I'm not sure about that. Could you ask something related to your training?";
-      
-      if (currentMessage.toLowerCase().includes('plateau')) {
-        response = "I've analyzed your recent workouts and noticed your bench press has plateaued. Try these strategies: 1) Add 2 sets of close-grip bench to target triceps, 2) Incorporate paused reps in your warmup sets, 3) Try a deload week to allow full recovery.";
-      } else if (currentMessage.toLowerCase().includes('diet') || currentMessage.toLowerCase().includes('nutrition')) {
-        response = "Based on your training volume and goals, I'd recommend increasing protein intake to 1.8g per kg of bodyweight and timing carbohydrates around your workouts. Focus on whole foods with at least 5 servings of vegetables daily.";
-      } else if (currentMessage.toLowerCase().includes('next workout')) {
-        response = "Your next workout is scheduled for tomorrow: Upper Body Strength. Based on your recovery scores, I suggest focusing on bench press (5x5 @ 185lbs) with an emphasis on controlled negatives.";
-      } else if (currentMessage.toLowerCase().includes('progress')) {
-        response = "You're making excellent progress! Your overall strength has increased by 8% in the last month. Your squat is improving the fastest, while your overhead press could use more attention.";
+      try {
+        const response = await fetch('/api/ai-chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId,
+            message: currentMessage,
+            history: newChatHistory.slice(0, -1) // Exclude the just-added user message
+          }),
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          aiResponse = data.message;
+        }
+      } catch (apiError) {
+        console.error('Error calling AI API:', apiError);
+        // We'll fall back to predefined responses below
       }
       
-      // Use the currentChatHistory to avoid state timing issues
-      setChatHistory([...currentChatHistory, { role: 'assistant', content: response }]);
+      // If we didn't get a response from the API, use the fallback responses
+      if (!aiResponse) {
+        // Generate a response based on keywords in the question
+        if (currentMessage.toLowerCase().includes('bench') || currentMessage.toLowerCase().includes('strength')) {
+          aiResponse = "For improving bench press strength, focus on these key areas: 1) Progressive overload - increase weight by 2.5-5 lbs when you can complete your target reps, 2) Form - ensure proper scapular retraction and leg drive, 3) Frequency - train bench 2-3 times per week with varying intensity, 4) Accessory work - strengthen triceps, shoulders and upper back.";
+        } else if (currentMessage.toLowerCase().includes('diet') || currentMessage.toLowerCase().includes('nutrition')) {
+          aiResponse = "Based on your training volume and goals, I'd recommend increasing protein intake to 1.8g per kg of bodyweight and timing carbohydrates around your workouts. Focus on whole foods with at least 5 servings of vegetables daily.";
+        } else if (currentMessage.toLowerCase().includes('workout')) {
+          aiResponse = "Your optimal workout split based on your goals would be a 4-day upper/lower split: Monday - Upper (strength), Tuesday - Lower (strength), Thursday - Upper (volume), Friday - Lower (volume). This balances frequency, recovery, and training stimulus.";
+        } else if (currentMessage.toLowerCase().includes('progress')) {
+          aiResponse = "To track progress effectively, monitor these key metrics: 1) Strength - track main lifts weekly, 2) Body composition - take measurements and photos monthly, 3) Recovery - daily subjective rating, 4) Performance - reps at submaximal weights. All these together provide a complete picture.";
+        } else {
+          aiResponse = "I understand you're interested in optimizing your fitness routine. Could you share more details about your current training program, goals, and any specific challenges you're facing? This will help me provide more personalized advice.";
+        }
+      }
+      
+      // Add the AI response to chat history
+      if (aiResponse) {
+        setChatHistory([...newChatHistory, { 
+          role: 'assistant', 
+          content: aiResponse
+        }]);
+      }
     } catch (error) {
-      console.error('Error sending message to AI coach:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to get a response from your AI coach. Please try again.',
-        variant: 'destructive'
-      });
+      console.error('Error in AI chat process:', error);
+      // Add a fallback response in case of total failure
+      setChatHistory([...newChatHistory, { 
+        role: 'assistant', 
+        content: "I apologize, but I'm having trouble processing your request. Please try asking something about your training or fitness goals."
+      }]);
     } finally {
       setLoading(false);
     }

@@ -36,7 +36,7 @@ export function ImprovedAIChat({ isOpen, onClose }: AIChatProps) {
         timestamp: new Date()
       }]);
     }
-  }, []);
+  }, [messages.length]);
 
   // Auto-scroll to bottom of messages
   useEffect(() => {

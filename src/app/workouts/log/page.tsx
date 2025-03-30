@@ -58,6 +58,8 @@ export default function LogWorkoutPage() {
 
   useEffect(() => {
     // Fetch exercises and AI workout plan from the API
+    let isMounted = true;
+    
     const fetchData = async () => {
       try {
         // Fetch all available exercises
@@ -66,29 +68,46 @@ export default function LogWorkoutPage() {
           throw new Error('Failed to fetch exercises');
         }
         
+        if (!isMounted) return;
+        
         const data = await response.json();
         console.log('Fetched exercises:', data);
+        
+        if (!isMounted) return;
         
         if (data.exercises && data.exercises.length > 0) {
           setAvailableExercises(data.exercises);
           
-          // Fetch AI workout plan
-          await fetchWorkoutPlan();
+          if (isMounted) {
+            // Fetch AI workout plan
+            await fetchWorkoutPlan();
+          }
         }
       } catch (error) {
         console.error('Error fetching exercises:', error);
+        
+        if (!isMounted) return;
+        
         toast({
           title: 'Error',
           description: 'Failed to load exercises.',
           variant: 'destructive'
         });
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
     fetchData();
-  }, [toast, user]);
+    
+    // Cleanup function to handle component unmounts
+    return () => {
+      isMounted = false;
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
   
   // Fetch AI workout plan
   const fetchWorkoutPlan = async () => {

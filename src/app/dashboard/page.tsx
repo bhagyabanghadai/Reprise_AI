@@ -19,7 +19,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/componen
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/use-toast'
 import { ImprovedAIChat } from '@/components/ImprovedChatBox'
-import AICoach from '@/components/AICoach'
+import AICoach2 from '@/components/AICoach2'
 import InteractiveAITrainer from '@/components/InteractiveAITrainer'
 import StrengthLimitsCard from '@/components/StrengthLimitsCard'
 import { useRouter } from 'next/navigation'
@@ -469,9 +469,9 @@ export default function Dashboard() {
               <Brain className="mr-2 text-purple-400" /> 
               Your AI Coach
             </h2>
-            {/* Import and use the AICoach component */}
+            {/* Use the fixed AICoach2 component */}
             {/* @ts-ignore */}
-            <AICoach userId={user?.id || 'user-123'} recentWorkouts={recentWorkouts} userStats={progressStats} />
+            <AICoach2 userId={user?.id || 'user-123'} recentWorkouts={recentWorkouts} userStats={progressStats} />
             
             {/* New Interactive AI Trainer */}
             <div className="mt-6 pb-4">
