@@ -81,14 +81,24 @@ export default function Dashboard() {
   }
 
   useEffect(() => {
+    let isMounted = true;
+    
     const fetchData = async () => {
-      setIsLoading(true)
+      if (!user?.id) return;
+      
+      setIsLoading(true);
       try {
         // Fetch workout logs
-        const workoutResponse = await fetch(`/api/workouts?userId=${user?.id || 'user-123'}`)
+        const workoutResponse = await fetch(`/api/workouts?userId=${user.id}`);
+        
+        if (!isMounted) return;
+        
         if (workoutResponse.ok) {
-          const data = await workoutResponse.json()
-          setRecentWorkouts(data.logs || [])
+          const data = await workoutResponse.json();
+          
+          if (!isMounted) return;
+          
+          setRecentWorkouts(data.logs || []);
 
           // Calculate progress stats
           const stats = {
@@ -99,9 +109,11 @@ export default function Dashboard() {
             recoveryScore: 90, // This will be calculated by AI
             streak: 12, // Days of consecutive workouts
             consistency: 87 // Percentage of workout plan adherence
-          }
-          setProgressStats(stats)
+          };
+          setProgressStats(stats);
         } else {
+          if (!isMounted) return;
+          
           // Set empty stats if no data is available
           setProgressStats({
             totalWorkouts: 0,
@@ -110,10 +122,13 @@ export default function Dashboard() {
             recoveryScore: 0,
             streak: 0,
             consistency: 0
-          })
+          });
         }
       } catch (error) {
-        console.error('Failed to fetch data:', error)
+        console.error('Failed to fetch data:', error);
+        
+        if (!isMounted) return;
+        
         // Set empty stats if API call fails
         setProgressStats({
           totalWorkouts: 0,
@@ -122,14 +137,22 @@ export default function Dashboard() {
           recoveryScore: 0,
           streak: 0,
           consistency: 0
-        })
+        });
       } finally {
-        setIsLoading(false)
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
-    }
+    };
 
-    fetchData()
-  }, [user?.id, toast])
+    fetchData();
+    
+    // Cleanup function
+    return () => {
+      isMounted = false;
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]) // Removed toast dependency to avoid infinite re-render cycles
 
   const formatDate = (dateString: string) => {
     if (!dateString) return 'N/A'

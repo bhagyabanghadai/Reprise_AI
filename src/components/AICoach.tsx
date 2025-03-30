@@ -144,6 +144,11 @@ export default function AICoach({ userId, recentWorkouts = [], userStats = {} }:
   ]
 
   useEffect(() => {
+    // Store a reference to the local data to avoid useEffect dependency issues 
+    const localSampleFeedback = sampleFeedback;
+    const localSampleWeeklyPlan = sampleWeeklyPlan;
+    let isMounted = true;
+    
     // Simulate loading AI coach data
     const loadCoachData = async () => {
       setLoading(true)
@@ -152,23 +157,36 @@ export default function AICoach({ userId, recentWorkouts = [], userStats = {} }:
         // For now, we'll use the sample data
         await new Promise(resolve => setTimeout(resolve, 1000))
         
-        setFeedback(sampleFeedback)
-        setWeeklyPlan(sampleWeeklyPlan)
+        // Only update state if component is still mounted
+        if (isMounted) {
+          setFeedback(localSampleFeedback)
+          setWeeklyPlan(localSampleWeeklyPlan)
+        }
 
       } catch (error) {
         console.error('Error loading AI coach data:', error)
-        toast({
-          title: 'Error',
-          description: 'Failed to load AI coach recommendations.',
-          variant: 'destructive'
-        })
+        if (isMounted) {
+          toast({
+            title: 'Error',
+            description: 'Failed to load AI coach recommendations.',
+            variant: 'destructive'
+          })
+        }
       } finally {
-        setLoading(false)
+        if (isMounted) {
+          setLoading(false)
+        }
       }
     }
 
     loadCoachData()
-  }, [userId, toast])
+    
+    // Cleanup function
+    return () => {
+      isMounted = false;
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]) // Only depend on userId to avoid infinite renders
 
   const toggleSection = (section: string) => {
     if (expandedSection === section) {
@@ -183,38 +201,42 @@ export default function AICoach({ userId, recentWorkouts = [], userStats = {} }:
 
     // Add user message to chat
     const userMessage = { role: 'user', content: chatMessage }
-    setChatHistory([...chatHistory, userMessage])
-    setChatMessage('')
+    const currentMessage = chatMessage; // Store current message before clearing
+    const currentChatHistory = [...chatHistory, userMessage]; // Create new array with user message
+    
+    setChatHistory(currentChatHistory);
+    setChatMessage('');
 
     // In a real app, this would call the AI API
     // For now, we'll simulate a response
-    setLoading(true)
+    setLoading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Generate a mock response based on the question
-      let response = "I'm not sure about that. Could you ask something related to your training?"
+      let response = "I'm not sure about that. Could you ask something related to your training?";
       
-      if (chatMessage.toLowerCase().includes('plateau')) {
-        response = "I've analyzed your recent workouts and noticed your bench press has plateaued. Try these strategies: 1) Add 2 sets of close-grip bench to target triceps, 2) Incorporate paused reps in your warmup sets, 3) Try a deload week to allow full recovery."
-      } else if (chatMessage.toLowerCase().includes('diet') || chatMessage.toLowerCase().includes('nutrition')) {
-        response = "Based on your training volume and goals, I'd recommend increasing protein intake to 1.8g per kg of bodyweight and timing carbohydrates around your workouts. Focus on whole foods with at least 5 servings of vegetables daily."
-      } else if (chatMessage.toLowerCase().includes('next workout')) {
-        response = "Your next workout is scheduled for tomorrow: Upper Body Strength. Based on your recovery scores, I suggest focusing on bench press (5x5 @ 185lbs) with an emphasis on controlled negatives."
-      } else if (chatMessage.toLowerCase().includes('progress')) {
-        response = "You're making excellent progress! Your overall strength has increased by 8% in the last month. Your squat is improving the fastest, while your overhead press could use more attention."
+      if (currentMessage.toLowerCase().includes('plateau')) {
+        response = "I've analyzed your recent workouts and noticed your bench press has plateaued. Try these strategies: 1) Add 2 sets of close-grip bench to target triceps, 2) Incorporate paused reps in your warmup sets, 3) Try a deload week to allow full recovery.";
+      } else if (currentMessage.toLowerCase().includes('diet') || currentMessage.toLowerCase().includes('nutrition')) {
+        response = "Based on your training volume and goals, I'd recommend increasing protein intake to 1.8g per kg of bodyweight and timing carbohydrates around your workouts. Focus on whole foods with at least 5 servings of vegetables daily.";
+      } else if (currentMessage.toLowerCase().includes('next workout')) {
+        response = "Your next workout is scheduled for tomorrow: Upper Body Strength. Based on your recovery scores, I suggest focusing on bench press (5x5 @ 185lbs) with an emphasis on controlled negatives.";
+      } else if (currentMessage.toLowerCase().includes('progress')) {
+        response = "You're making excellent progress! Your overall strength has increased by 8% in the last month. Your squat is improving the fastest, while your overhead press could use more attention.";
       }
       
-      setChatHistory([...chatHistory, userMessage, { role: 'assistant', content: response }])
+      // Use the currentChatHistory to avoid state timing issues
+      setChatHistory([...currentChatHistory, { role: 'assistant', content: response }]);
     } catch (error) {
-      console.error('Error sending message to AI coach:', error)
+      console.error('Error sending message to AI coach:', error);
       toast({
         title: 'Error',
         description: 'Failed to get a response from your AI coach. Please try again.',
         variant: 'destructive'
-      })
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 

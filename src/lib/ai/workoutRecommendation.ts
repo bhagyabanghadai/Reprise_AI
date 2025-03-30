@@ -197,7 +197,7 @@ export async function analyzeWorkout(
 /**
  * Generate a basic backup weekly plan in case the AI API fails
  */
-function generateBackupWeeklyPlan(availableExercises: Exercise[]): WorkoutPlan[] {
+export function generateBackupWeeklyPlan(availableExercises: Exercise[]): WorkoutPlan[] {
   // Create a map of exercises by muscle group for easier access
   const exercisesByMuscleGroup: Record<string, Exercise[]> = {};
   
