@@ -13,16 +13,14 @@ export const exercises = pgTable('exercises', {
 export const userProfiles = pgTable('user_profiles', {
   id: serial('id').primaryKey(),
   userId: text('user_id').notNull(),
-  age: integer('age'),
-  weight: decimal('weight'), // in kg
+  name: text('name'),
+  email: text('email'),
   height: decimal('height'), // in cm
-  fitnessLevel: text('fitness_level'), // beginner, intermediate, advanced
+  weight: decimal('weight'), // in kg
   fitnessGoals: jsonb('fitness_goals'), // array of goals
-  workoutPreference: jsonb('workout_preference'), // preferred days, times, etc
-  equipment: jsonb('available_equipment'), // array of available equipment
-  medicalConditions: jsonb('medical_conditions'), // any health considerations
+  fitnessLevel: text('fitness_level'), // beginner, intermediate, advanced
   strengthLimits: jsonb('strength_limits'), // 1RMs for main lifts
-  trainingHistory: jsonb('training_history'), // past training experience
+  trainingHistory: jsonb('training_history'), // past training experience, preferences, equipment, etc.
   injuryHistory: jsonb('injury_history'), // specific injuries/mobility restrictions
   recoveryMetrics: jsonb('recovery_metrics'), // sleep, soreness, etc.
   createdAt: timestamp('created_at').defaultNow(),

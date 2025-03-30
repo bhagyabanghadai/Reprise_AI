@@ -3,6 +3,24 @@ import { db } from '@/lib/db';
 import { userProfiles } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 
+// Define interfaces based on the actual database schema
+interface UserProfile {
+  id?: number;
+  userId: string;
+  name?: string;
+  email?: string;
+  height?: string | null;
+  weight?: string | null;
+  fitnessGoals?: any;
+  fitnessLevel?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+  strengthLimits?: any;
+  trainingHistory?: any;
+  injuryHistory?: any;
+  recoveryMetrics?: any;
+}
+
 export async function POST(req: Request) {
   try {
     const data = await req.json();
@@ -36,17 +54,21 @@ export async function POST(req: Request) {
       timePerWorkout: 60
     };
 
-    // Prepare final data object
-    const dbProfileData = {
+    // Prepare final data object to match actual database schema
+    const dbProfileData: UserProfile = {
       userId,
-      age: profileData.age ? parseInt(profileData.age) : null,
       weight: profileData.weight ? profileData.weight.toString() : null,
       height: profileData.height ? profileData.height.toString() : null,
       fitnessLevel: profileData.fitnessLevel || 'Beginner',
       fitnessGoals: fitnessGoals,
-      workoutPreference: workoutPreference,
-      equipment: equipment,
-      medicalConditions: medicalConditions ? [medicalConditions] : [],
+      // Store everything else in training_history
+      trainingHistory: {
+        workoutPreference: workoutPreference,
+        age: profileData.age ? parseInt(profileData.age) : null,
+        equipment: equipment
+      },
+      // Store medical conditions in injury_history
+      injuryHistory: medicalConditions ? [medicalConditions] : [],
       updatedAt: new Date()
     };
 
@@ -98,11 +120,32 @@ export async function GET(req: Request) {
       .from(userProfiles)
       .where(eq(userProfiles.userId, userId));
 
-    // Return the profile as is - it's already stored as JSON in the database
+    // Transform the profile data to match the expected frontend format
     let profile = null;
     if (profiles.length > 0) {
-      profile = profiles[0];
-      console.log('Found profile:', profile);
+      const dbProfile = profiles[0] as UserProfile;
+      console.log('Found database profile:', dbProfile);
+      
+      // Transform to frontend format - safely handle possible undefined objects
+      const trainingHistory = dbProfile.trainingHistory || {};
+      const injuryHistory = dbProfile.injuryHistory || {};
+
+      profile = {
+        age: trainingHistory.age || null,
+        weight: dbProfile.weight || null,
+        height: dbProfile.height || null,
+        fitnessLevel: dbProfile.fitnessLevel || 'Beginner',
+        fitnessGoals: dbProfile.fitnessGoals || [],
+        workoutPreference: trainingHistory.workoutPreference || {
+          daysPerWeek: 3,
+          preferredDays: [],
+          timePerWorkout: 60
+        },
+        equipment: trainingHistory.equipment || [],
+        medicalConditions: Array.isArray(injuryHistory) && injuryHistory.length > 0 
+          ? injuryHistory[0] 
+          : ''
+      };
     }
 
     // If no profile is found, return a default profile structure

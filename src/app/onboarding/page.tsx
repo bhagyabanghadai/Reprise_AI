@@ -105,6 +105,15 @@ export default function OnboardingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-cyan-900 overflow-auto">
       <Header />
+      <button 
+        onClick={() => window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'})}
+        className="fixed bottom-4 right-4 bg-blue-500 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg z-50"
+        aria-label="Scroll to bottom"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
       <main className="container mx-auto px-4 py-8 pb-20">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -165,12 +174,14 @@ export default function OnboardingPage() {
                     max="300"
                   />
                 </div>
-                <Button
-                  onClick={() => setStep(2)}
-                  className="w-full sticky bottom-2 z-10 bg-gradient-to-r from-cyan-500 to-blue-500 py-3 mt-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-                >
-                  Next: Fitness Goals →
-                </Button>
+                <div className="sticky bottom-0 bg-gradient-to-t from-gray-900/95 to-gray-900/60 pt-3 pb-2 -mx-6 px-6 mt-4 z-10">
+                  <Button
+                    onClick={() => setStep(2)}
+                    className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                  >
+                    Next: Fitness Goals →
+                  </Button>
+                </div>
               </motion.div>
             )}
 
@@ -219,20 +230,22 @@ export default function OnboardingPage() {
                     ))}
                   </div>
                 </div>
-                <div className="flex gap-3 sticky bottom-2 mt-4">
-                  <Button
-                    onClick={() => setStep(1)}
-                    variant="outline"
-                    className="flex-1 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-                  >
-                    ← Back
-                  </Button>
-                  <Button
-                    onClick={() => setStep(3)}
-                    className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-500 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-                  >
-                    Next: Schedule →
-                  </Button>
+                <div className="sticky bottom-0 bg-gradient-to-t from-gray-900/95 to-gray-900/60 pt-3 pb-2 -mx-6 px-6 mt-4 z-10">
+                  <div className="flex gap-3">
+                    <Button
+                      onClick={() => setStep(1)}
+                      variant="outline"
+                      className="flex-1 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                    >
+                      ← Back
+                    </Button>
+                    <Button
+                      onClick={() => setStep(3)}
+                      className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-500 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                    >
+                      Next: Schedule →
+                    </Button>
+                  </div>
                 </div>
               </motion.div>
             )}
@@ -296,21 +309,23 @@ export default function OnboardingPage() {
                     placeholder="List any medical conditions or injuries that might affect your training..."
                   />
                 </div>
-                <div className="flex gap-3 sticky bottom-2 mt-4 z-10">
-                  <Button
-                    onClick={() => setStep(2)}
-                    variant="outline"
-                    className="flex-1 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-                  >
-                    ← Back
-                  </Button>
-                  <Button
-                    onClick={handleSubmit}
-                    disabled={loading}
-                    className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-500 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-                  >
-                    {loading ? 'Saving...' : 'Complete Setup ✓'}
-                  </Button>
+                <div className="sticky bottom-0 bg-gradient-to-t from-gray-900/95 to-gray-900/60 pt-3 pb-2 -mx-6 px-6 mt-4 z-10">
+                  <div className="flex gap-3">
+                    <Button
+                      onClick={() => setStep(2)}
+                      variant="outline"
+                      className="flex-1 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                    >
+                      ← Back
+                    </Button>
+                    <Button
+                      onClick={handleSubmit}
+                      disabled={loading}
+                      className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-500 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                    >
+                      {loading ? 'Saving...' : 'Complete Setup ✓'}
+                    </Button>
+                  </div>
                 </div>
               </motion.div>
             )}
