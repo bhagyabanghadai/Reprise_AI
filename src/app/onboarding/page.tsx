@@ -167,7 +167,7 @@ export default function OnboardingPage() {
                 </div>
                 <Button
                   onClick={() => setStep(2)}
-                  className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 py-3 mt-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                  className="w-full sticky bottom-2 z-10 bg-gradient-to-r from-cyan-500 to-blue-500 py-3 mt-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
                 >
                   Next: Fitness Goals →
                 </Button>
@@ -219,7 +219,7 @@ export default function OnboardingPage() {
                     ))}
                   </div>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex gap-3 sticky bottom-2 mt-4">
                   <Button
                     onClick={() => setStep(1)}
                     variant="outline"
@@ -296,7 +296,7 @@ export default function OnboardingPage() {
                     placeholder="List any medical conditions or injuries that might affect your training..."
                   />
                 </div>
-                <div className="flex gap-3">
+                <div className="flex gap-3 sticky bottom-2 mt-4 z-10">
                   <Button
                     onClick={() => setStep(2)}
                     variant="outline"
