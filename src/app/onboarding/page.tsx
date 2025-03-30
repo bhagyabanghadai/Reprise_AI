@@ -103,21 +103,21 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-cyan-900">
+    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-cyan-900 overflow-auto">
       <Header />
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 pb-20">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="max-w-2xl mx-auto"
+          className="max-w-xl mx-auto"
         >
           <h1 className="text-4xl font-bold text-white mb-8 flex items-center">
             <Brain className="mr-3 text-cyan-400" />
             Let's Personalize Your AI Trainer
           </h1>
 
-          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 shadow-xl">
+          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 shadow-xl max-h-[80vh] overflow-y-auto">
             {step === 1 && (
               <motion.div
                 initial={{ opacity: 0 }}
@@ -223,9 +223,9 @@ export default function OnboardingPage() {
                   <Button
                     onClick={() => setStep(1)}
                     variant="outline"
-                    className="flex-1"
+                    className="flex-1 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
                   >
-                    Back
+                    ← Back
                   </Button>
                   <Button
                     onClick={() => setStep(3)}
@@ -300,16 +300,16 @@ export default function OnboardingPage() {
                   <Button
                     onClick={() => setStep(2)}
                     variant="outline"
-                    className="flex-1"
+                    className="flex-1 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
                   >
-                    Back
+                    ← Back
                   </Button>
                   <Button
                     onClick={handleSubmit}
                     disabled={loading}
-                    className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-500"
+                    className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-500 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
                   >
-                    {loading ? 'Saving...' : 'Complete Setup'}
+                    {loading ? 'Saving...' : 'Complete Setup ✓'}
                   </Button>
                 </div>
               </motion.div>
