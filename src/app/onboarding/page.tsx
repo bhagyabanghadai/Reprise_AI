@@ -133,9 +133,11 @@ export default function OnboardingPage() {
                     <Input
                       type="number"
                       value={profile.age}
-                      onChange={(e) => setProfile({ ...profile, age: e.target.value })}
+                      onChange={(e) => setProfile({ ...profile, age: e.target.value || '' })}
                       className="bg-white/5 border-gray-600 text-white"
                       placeholder="Enter your age"
+                      min="1"
+                      max="120"
                     />
                   </div>
                   <div>
@@ -143,9 +145,11 @@ export default function OnboardingPage() {
                     <Input
                       type="number"
                       value={profile.weight}
-                      onChange={(e) => setProfile({ ...profile, weight: e.target.value })}
+                      onChange={(e) => setProfile({ ...profile, weight: e.target.value || '' })}
                       className="bg-white/5 border-gray-600 text-white"
                       placeholder="Enter your weight"
+                      min="1"
+                      max="500"
                     />
                   </div>
                 </div>
@@ -154,16 +158,18 @@ export default function OnboardingPage() {
                   <Input
                     type="number"
                     value={profile.height}
-                    onChange={(e) => setProfile({ ...profile, height: e.target.value })}
+                    onChange={(e) => setProfile({ ...profile, height: e.target.value || '' })}
                     className="bg-white/5 border-gray-600 text-white"
                     placeholder="Enter your height"
+                    min="1"
+                    max="300"
                   />
                 </div>
                 <Button
                   onClick={() => setStep(2)}
-                  className="w-full bg-gradient-to-r from-cyan-500 to-blue-500"
+                  className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 py-3 mt-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
                 >
-                  Next: Fitness Goals
+                  Next: Fitness Goals →
                 </Button>
               </motion.div>
             )}
@@ -223,9 +229,9 @@ export default function OnboardingPage() {
                   </Button>
                   <Button
                     onClick={() => setStep(3)}
-                    className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-500"
+                    className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-500 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
                   >
-                    Next: Schedule
+                    Next: Schedule →
                   </Button>
                 </div>
               </motion.div>
@@ -252,7 +258,7 @@ export default function OnboardingPage() {
                         ...profile,
                         workoutPreference: {
                           ...profile.workoutPreference,
-                          daysPerWeek: parseInt(e.target.value),
+                          daysPerWeek: e.target.value ? parseInt(e.target.value) : 3,
                         },
                       })
                     }
