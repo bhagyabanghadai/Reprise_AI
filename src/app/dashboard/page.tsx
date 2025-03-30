@@ -17,7 +17,7 @@ import WorkoutForm from '@/components/WorkoutForm'
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/use-toast'
-import { AIChat } from '@/components/ChatBox'
+import { ImprovedAIChat } from '@/components/ImprovedChatBox'
 import AICoach from '@/components/AICoach'
 import StrengthLimitsCard from '@/components/StrengthLimitsCard'
 import { useRouter } from 'next/navigation'
@@ -453,7 +453,7 @@ export default function Dashboard() {
       <Footer />
 
       {/* AI Chat Integration */}
-      <AIChat isOpen={showAIChat} onClose={() => setShowAIChat(false)} />
+      <ImprovedAIChat isOpen={showAIChat} onClose={() => setShowAIChat(false)} />
       {!showAIChat && (
         <div className="fixed bottom-4 right-4 flex flex-col items-end space-y-2">
           <button

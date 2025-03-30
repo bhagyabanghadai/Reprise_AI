@@ -1,6 +1,7 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { sql } from 'drizzle-orm';
+import * as schema from './schema';
 import { exercises, workoutLogs, progressionHistory, userStats, userProfiles } from './schema';
 
 // Initialize the database with explicit error handling
@@ -11,7 +12,7 @@ const createDb = () => {
     }
     
     const client = postgres(process.env.DATABASE_URL);
-    return drizzle(client);
+    return drizzle(client, { schema });
   } catch (error) {
     console.error('Failed to initialize database:', error);
     throw error;
