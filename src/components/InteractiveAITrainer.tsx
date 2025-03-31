@@ -187,13 +187,26 @@ export default function InteractiveAITrainer({
         onProfileUpdate(profileData);
       }
       
-      // Add completion message
-      setMessages(prev => [...prev, {
-        id: 'onboarding-complete',
-        content: "✅ **Profile Complete!**\n\nThank you for providing all that information! I've updated your profile and I'm now generating a personalized workout plan based on your goals and preferences.\n\n**Your plan will appear on your dashboard shortly.**\n\nIs there anything specific you'd like to know about your new training program?",
-        role: 'assistant',
-        timestamp: new Date()
-      }]);
+      // Add completion message with a unique ID
+      const completionId = 'onboarding-complete-' + Date.now();
+      setMessages(prev => {
+        // Check if a completion message already exists
+        const hasCompletionMessage = prev.some(msg => 
+          msg.content.includes("Profile Complete") && 
+          msg.role === 'assistant'
+        );
+        
+        // Only add if no similar message exists
+        if (!hasCompletionMessage) {
+          return [...prev, {
+            id: completionId,
+            content: "✅ **Profile Complete!**\n\nThank you for providing all that information! I've updated your profile and I'm now generating a personalized workout plan based on your goals and preferences.\n\n**Your plan will appear on your dashboard shortly.**\n\nIs there anything specific you'd like to know about your new training program?",
+            role: 'assistant',
+            timestamp: new Date()
+          }];
+        }
+        return prev;
+      });
       
       // Switch back to chat mode
       setConversationMode('chat');
@@ -234,18 +247,31 @@ export default function InteractiveAITrainer({
         onPlanUpdate(data.plan);
       }
       
-      // Add plan confirmation message
-      setMessages(prev => [...prev, {
-        id: 'plan-generated',
-        content: "🎉 **Workout Plan Generated!**\n\nI've created a personalized workout plan based on your profile. You can view it on your dashboard.\n\n**Would you like me to walk you through the plan?**",
-        role: 'assistant',
-        timestamp: new Date(),
-        metadata: {
-          actionType: 'workout_plan',
-          actionRequired: false,
-          extractedData: data.plan
+      // Add plan confirmation message - use a unique ID to prevent duplicates
+      const planMessageId = 'plan-generated-' + Date.now();
+      setMessages(prev => {
+        // Check if a message with similar content already exists
+        const hasPlanMessage = prev.some(msg => 
+          msg.content.includes("Workout Plan Generated") && 
+          msg.role === 'assistant'
+        );
+        
+        // Only add if no similar message exists
+        if (!hasPlanMessage) {
+          return [...prev, {
+            id: planMessageId,
+            content: "🎉 **Workout Plan Generated!**\n\nI've created a personalized workout plan based on your profile. You can view it on your dashboard.\n\n**Would you like me to walk you through the plan?**",
+            role: 'assistant',
+            timestamp: new Date(),
+            metadata: {
+              actionType: 'workout_plan',
+              actionRequired: false,
+              extractedData: data.plan
+            }
+          }];
         }
-      }]);
+        return prev;
+      });
       
     } catch (error) {
       console.error('Error generating workout plan:', error);
@@ -363,8 +389,9 @@ export default function InteractiveAITrainer({
         body: JSON.stringify({
           message: userMessage.content,
           userId: currentUserId,
+          // Filter out system messages, metadata, and only include essential fields
           chatHistory: messages
-            .filter(msg => msg.role !== 'system') // Don't send system messages
+            .filter(msg => msg.role === 'user' || msg.role === 'assistant') // Only include user and assistant messages
             .map(msg => ({
               role: msg.role,
               content: msg.content

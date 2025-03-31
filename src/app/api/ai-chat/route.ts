@@ -5,8 +5,8 @@ const LLAMA_API_KEY = process.env.LLAMA_API_KEY;
 // Switch to using Nvidia's Llama model endpoint
 const NVIDIA_API_ENDPOINT = 'https://integrate.api.nvidia.com/v1/chat/completions';
 // Use a fallback model if we're having API issues or for testing
-// Setting to true temporarily while we fix the API key
-const USE_FALLBACK = true;
+// Setting to false to use the actual Llama API
+const USE_FALLBACK = false;
 
 interface Message {
   role: 'user' | 'assistant' | 'system';
@@ -15,7 +15,7 @@ interface Message {
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId, message, history = [] } = await request.json();
+    const { userId, message, chatHistory = [], intent = 'general' } = await request.json();
 
     if (!userId || !message) {
       return NextResponse.json(
@@ -24,11 +24,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Prepare the conversation history
-    const messages: Message[] = [
-      {
-        role: 'system',
-        content: `You are an expert AI fitness coach named FitAI. Your goal is to help users achieve their fitness goals by providing personalized advice, workout plans, and nutritional guidance.
+    // Prepare the conversation history - create a new array to avoid mutating the input
+    const systemPrompt: Message = {
+      role: 'system' as const,
+      content: `You are an expert AI fitness coach named FitAI. Your goal is to help users achieve their fitness goals by providing personalized advice, workout plans, and nutritional guidance.
 
 Your core abilities include:
 1. Creating personalized workout plans based on user's goals, fitness level, available equipment, and time constraints
@@ -51,12 +50,27 @@ OUTPUT FORMAT GUIDELINES:
 - Bold important information
 - When providing workout plans, format each exercise with sets, reps, and notes
 - Keep responses concise and focused on the user's questions`
-      },
-      ...history
-    ];
+    };
+
+    // Check if we have a valid chat history and construct messages array
+    let messages: Message[] = [];
+    
+    // Always start with the system prompt
+    messages.push(systemPrompt as Message);
+    
+    // Add conversation history if provided and valid
+    if (Array.isArray(chatHistory) && chatHistory.length > 0) {
+      // Filter out any invalid messages and only include user/assistant roles
+      const validMessages = chatHistory.filter(
+        msg => msg && (msg.role === 'user' || msg.role === 'assistant') && typeof msg.content === 'string'
+      ) as Message[];
+      
+      // Add valid messages to our conversation
+      messages = [...messages, ...validMessages];
+    }
 
     // Add the new user message
-    messages.push({ role: 'user', content: message });
+    messages.push({ role: 'user' as const, content: message });
 
     // Check if we can extract intent from the message
     let extractedData = null;
@@ -74,7 +88,7 @@ OUTPUT FORMAT GUIDELINES:
     ) {
       // Add an additional instruction for the AI to extract profile data
       messages.push({
-        role: 'system',
+        role: 'system' as const,
         content: `The user appears to be providing profile information. After responding conversationally, please extract structured data for their fitness profile. 
         Add a JSON block at the end of your message in this format:
         
@@ -113,7 +127,7 @@ OUTPUT FORMAT GUIDELINES:
     ) {
       // Add an additional instruction for the AI to create a workout plan
       messages.push({
-        role: 'system',
+        role: 'system' as const,
         content: `The user appears to be requesting a workout plan. After responding conversationally, please create a structured workout plan. 
         Add a JSON block at the end of your message in this format:
         
