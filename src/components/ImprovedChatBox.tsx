@@ -6,8 +6,9 @@ import { useToast } from '@/components/ui/use-toast';
 interface Message {
   id: string;
   content: string;
-  role: 'user' | 'assistant';
+  role: 'user' | 'assistant' | 'system';
   timestamp: Date;
+  metadata?: any;
 }
 
 interface AIChatProps {
@@ -22,26 +23,97 @@ export function ImprovedAIChat({ isOpen, onClose }: AIChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const [inputValue, setInputValue] = useState('');
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
   const { toast } = useToast();
+  
+  const userId = user?.id || TEST_USER_ID;
 
-  // Set up initial greeting message
+  // Load chat history from API
   useEffect(() => {
-    if (messages.length === 0) {
-      setMessages([{
-        id: 'welcome',
-        content: "👋 **Welcome to Your AI Fitness Coach!**\n\nI'm here to help you with your fitness journey. I can provide workout tips, nutrition advice, answer fitness questions, and more. How can I assist you today?",
-        role: 'assistant',
-        timestamp: new Date()
-      }]);
+    const fetchChatHistory = async () => {
+      try {
+        setIsLoadingHistory(true);
+        const response = await fetch(`/api/chat/messages?userId=${userId}`);
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.messages && data.messages.length > 0) {
+            // Format the messages correctly
+            const formattedMessages = data.messages.map((msg: any) => ({
+              ...msg,
+              timestamp: new Date(msg.timestamp)
+            })).sort((a: any, b: any) => 
+              new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+            );
+            
+            setMessages(formattedMessages);
+          } else {
+            // No messages found, set welcome message
+            setMessages([{
+              id: 'welcome',
+              content: "👋 **Welcome to Your AI Fitness Coach!**\n\nI'm here to help you with your fitness journey. I can provide workout tips, nutrition advice, answer fitness questions, and more. How can I assist you today?",
+              role: 'assistant',
+              timestamp: new Date()
+            }]);
+          }
+        } else {
+          // API error, fall back to welcome message
+          console.error('Failed to fetch chat history');
+          setMessages([{
+            id: 'welcome',
+            content: "👋 **Welcome to Your AI Fitness Coach!**\n\nI'm here to help you with your fitness journey. I can provide workout tips, nutrition advice, answer fitness questions, and more. How can I assist you today?",
+            role: 'assistant',
+            timestamp: new Date()
+          }]);
+        }
+      } catch (error) {
+        console.error('Error fetching chat history:', error);
+        setMessages([{
+          id: 'welcome',
+          content: "👋 **Welcome to Your AI Fitness Coach!**\n\nI'm here to help you with your fitness journey. I can provide workout tips, nutrition advice, answer fitness questions, and more. How can I assist you today?",
+          role: 'assistant',
+          timestamp: new Date()
+        }]);
+      } finally {
+        setIsLoadingHistory(false);
+      }
+    };
+
+    if (isOpen) {
+      fetchChatHistory();
     }
-  }, [messages.length]);
+  }, [isOpen, userId]);
 
   // Auto-scroll to bottom of messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Save message to database
+  const saveMessageToDb = async (message: Message) => {
+    try {
+      const response = await fetch('/api/chat/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: userId,
+          content: message.content,
+          role: message.role,
+          metadata: message.metadata || null
+        }),
+      });
+      
+      if (!response.ok) {
+        console.error('Failed to save message to database');
+      }
+    } catch (error) {
+      console.error('Error saving message:', error);
+    }
+  };
 
   const sendMessage = async () => {
     if (!inputValue.trim()) return;
@@ -59,10 +131,10 @@ export function ImprovedAIChat({ isOpen, onClose }: AIChatProps) {
     setInputValue('');
     setLoading(true);
     
+    // Save user message to database
+    await saveMessageToDb(userMessage);
+    
     try {
-      // Get user ID either from auth context or test ID
-      const userId = user?.id || TEST_USER_ID;
-      
       // Send to our improved AI chat API
       const response = await fetch('/api/ai-chat', {
         method: 'POST',
@@ -93,6 +165,9 @@ export function ImprovedAIChat({ isOpen, onClose }: AIChatProps) {
         timestamp: new Date()
       };
       
+      // Save AI message to database
+      await saveMessageToDb(aiMessage);
+      
       // Add AI message to chat
       setMessages(prev => [...prev, aiMessage]);
     } catch (error) {
@@ -104,12 +179,18 @@ export function ImprovedAIChat({ isOpen, onClose }: AIChatProps) {
       });
       
       // Add error message
-      setMessages(prev => [...prev, {
+      const errorMessage: Message = {
         id: 'error-' + Date.now().toString(),
         content: "I'm having trouble connecting right now. Please try again in a moment.",
         role: 'assistant',
         timestamp: new Date()
-      }]);
+      };
+      
+      // Save error message to database
+      await saveMessageToDb(errorMessage);
+      
+      // Add error message to chat
+      setMessages(prev => [...prev, errorMessage]);
     } finally {
       setLoading(false);
     }
@@ -130,47 +211,120 @@ export function ImprovedAIChat({ isOpen, onClose }: AIChatProps) {
         {/* Header */}
         <div className="flex justify-between items-center p-4 border-b dark:border-gray-700">
           <h2 className="text-lg font-semibold">AI Fitness Coach</h2>
-          <button 
-            onClick={onClose}
-            className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+          <div className="flex items-center space-x-2">
+            <button 
+              onClick={async () => {
+                if (window.confirm("Are you sure you want to clear your chat history?")) {
+                  try {
+                    setIsLoadingHistory(true);
+                    const response = await fetch(`/api/chat/messages?userId=${userId}`, {
+                      method: 'DELETE'
+                    });
+                    
+                    if (response.ok) {
+                      setMessages([{
+                        id: 'welcome',
+                        content: "👋 **Welcome to Your AI Fitness Coach!**\n\nI'm here to help you with your fitness journey. I can provide workout tips, nutrition advice, answer fitness questions, and more. How can I assist you today?",
+                        role: 'assistant',
+                        timestamp: new Date()
+                      }]);
+                      
+                      // Save the welcome message to database
+                      await saveMessageToDb({
+                        id: 'welcome',
+                        content: "👋 **Welcome to Your AI Fitness Coach!**\n\nI'm here to help you with your fitness journey. I can provide workout tips, nutrition advice, answer fitness questions, and more. How can I assist you today?",
+                        role: 'assistant',
+                        timestamp: new Date()
+                      });
+                      
+                      toast({
+                        title: "Success",
+                        description: "Chat history cleared successfully",
+                      });
+                    } else {
+                      toast({
+                        title: "Error",
+                        description: "Failed to clear chat history",
+                        variant: "destructive"
+                      });
+                    }
+                  } catch (error) {
+                    console.error('Error clearing chat history:', error);
+                    toast({
+                      title: "Error",
+                      description: "Failed to clear chat history",
+                      variant: "destructive"
+                    });
+                  } finally {
+                    setIsLoadingHistory(false);
+                  }
+                }
+              }}
+              className="p-1 rounded-full text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-300"
+              title="Clear chat history"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
+            <button 
+              onClick={onClose}
+              className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+              title="Close chat"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
         </div>
         
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {messages.map((message) => (
-            <div 
-              key={message.id} 
-              className={`max-w-[85%] ${
-                message.role === 'user' 
-                  ? 'ml-auto bg-blue-600 text-white rounded-t-lg rounded-bl-lg' 
-                  : 'mr-auto bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-white rounded-t-lg rounded-br-lg'
-              } p-3`}
-            >
-              <div className="prose dark:prose-invert prose-sm max-w-none">
-                <ReactMarkdown>{message.content}</ReactMarkdown>
-              </div>
-              <div className={`text-xs ${
-                message.role === 'user' 
-                  ? 'text-blue-200' 
-                  : 'text-gray-500'
-              } mt-1`}>
-                {message.timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+          {isLoadingHistory ? (
+            <div className="flex justify-center items-center h-full">
+              <div className="flex flex-col items-center space-y-2">
+                <div className="flex space-x-2">
+                  <div className="h-3 w-3 bg-blue-500 rounded-full animate-bounce"></div>
+                  <div className="h-3 w-3 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                  <div className="h-3 w-3 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '0.4s'}}></div>
+                </div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Loading conversation history...</p>
               </div>
             </div>
-          ))}
-          {loading && (
-            <div className="mr-auto bg-gray-200 dark:bg-gray-800 rounded-t-lg rounded-br-lg p-3">
-              <div className="flex space-x-2">
-                <div className="h-2 w-2 bg-gray-500 rounded-full animate-bounce"></div>
-                <div className="h-2 w-2 bg-gray-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-                <div className="h-2 w-2 bg-gray-500 rounded-full animate-bounce" style={{animationDelay: '0.4s'}}></div>
-              </div>
-            </div>
+          ) : (
+            <>
+              {messages.map((message) => (
+                <div 
+                  key={message.id} 
+                  className={`max-w-[85%] ${
+                    message.role === 'user' 
+                      ? 'ml-auto bg-blue-600 text-white rounded-t-lg rounded-bl-lg' 
+                      : 'mr-auto bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-white rounded-t-lg rounded-br-lg'
+                  } p-3`}
+                >
+                  <div className="prose dark:prose-invert prose-sm max-w-none">
+                    <ReactMarkdown>{message.content}</ReactMarkdown>
+                  </div>
+                  <div className={`text-xs ${
+                    message.role === 'user' 
+                      ? 'text-blue-200' 
+                      : 'text-gray-500'
+                  } mt-1`}>
+                    {message.timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                  </div>
+                </div>
+              ))}
+              {loading && (
+                <div className="mr-auto bg-gray-200 dark:bg-gray-800 rounded-t-lg rounded-br-lg p-3">
+                  <div className="flex space-x-2">
+                    <div className="h-2 w-2 bg-gray-500 rounded-full animate-bounce"></div>
+                    <div className="h-2 w-2 bg-gray-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                    <div className="h-2 w-2 bg-gray-500 rounded-full animate-bounce" style={{animationDelay: '0.4s'}}></div>
+                  </div>
+                </div>
+              )}
+            </>
           )}
           <div ref={messagesEndRef} />
         </div>

@@ -1,5 +1,14 @@
 import { serial, text, timestamp, integer, decimal, pgTable, boolean, jsonb } from 'drizzle-orm/pg-core';
 
+export const chatMessages = pgTable('chat_messages', {
+  id: serial('id').primaryKey(),
+  userId: text('user_id').notNull(),
+  content: text('content').notNull(),
+  role: text('role').notNull(), // 'user', 'assistant', 'system'
+  timestamp: timestamp('timestamp').defaultNow(),
+  metadata: jsonb('metadata'), // can store intent, extracted data, etc.
+});
+
 export const exercises = pgTable('exercises', {
   id: serial('id').primaryKey(),
   name: text('name').notNull(),

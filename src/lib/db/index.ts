@@ -2,7 +2,7 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { sql } from 'drizzle-orm';
 import * as schema from './schema';
-import { exercises, workoutLogs, progressionHistory, userStats, userProfiles } from './schema';
+import { exercises, workoutLogs, progressionHistory, userStats, userProfiles, chatMessages } from './schema';
 
 // Initialize the database with explicit error handling
 const createDb = () => {
@@ -55,5 +55,9 @@ export type NewUserStats = typeof userStats.$inferInsert;
 export type UserProfile = typeof userProfiles.$inferSelect;
 export type NewUserProfile = typeof userProfiles.$inferInsert;
 
+// Export types for chat messages
+export type ChatMessage = typeof chatMessages.$inferSelect;
+export type NewChatMessage = typeof chatMessages.$inferInsert;
+
 // Export table schemas and db instance
-export { exercises, workoutLogs, progressionHistory, userStats, userProfiles };
+export { exercises, workoutLogs, progressionHistory, userStats, userProfiles, chatMessages };
