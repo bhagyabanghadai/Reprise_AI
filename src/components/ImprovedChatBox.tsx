@@ -148,7 +148,7 @@ export function ImprovedAIChat({ isOpen, onClose }: AIChatProps) {
               className={`max-w-[85%] ${
                 message.role === 'user' 
                   ? 'ml-auto bg-blue-600 text-white rounded-t-lg rounded-bl-lg' 
-                  : 'mr-auto bg-gray-200 dark:bg-gray-800 rounded-t-lg rounded-br-lg'
+                  : 'mr-auto bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-white rounded-t-lg rounded-br-lg'
               } p-3`}
             >
               <div className="prose dark:prose-invert prose-sm max-w-none">
