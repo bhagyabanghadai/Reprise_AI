@@ -47,11 +47,11 @@ interface InteractiveAITrainerProps {
 const CONVERSATION_STARTERS = [
   "I'd like to build muscle and strength",
   "I want to lose weight and get lean",
-  "I need help with a training program",
-  "I'm recovering from an injury",
-  "I want to improve my endurance",
-  "How can I track my progress better?",
-  "What should I eat to support my training?"
+  "I need help with a personalized training program",
+  "I'm recovering from an injury and need guidance",
+  "I want to improve my endurance for running",
+  "How should I eat to support my training goals?",
+  "Create a workout plan for me step-by-step"
 ];
 
 export default function InteractiveAITrainer({ 
@@ -81,13 +81,13 @@ export default function InteractiveAITrainer({
 
   // Onboarding questions sequence
   const onboardingQuestions = [
-    "What's your primary fitness goal? (e.g., build muscle, lose weight, improve endurance)",
-    "How would you describe your current fitness level? (beginner, intermediate, advanced)",
-    "How many days per week can you dedicate to working out?",
-    "Do you have any physical limitations or injuries I should know about?",
-    "Do you have access to a gym with equipment, or will you be training at home?",
-    "What's your height and weight? (This helps me tailor recommendations)",
-    "What's your age? (This helps optimize recovery recommendations)"
+    "What's your primary fitness goal? Select one that best matches your focus:\n\n1. Build Muscle & Strength\n2. Lose Weight & Get Lean\n3. Improve Endurance & Stamina\n4. Enhance Athletic Performance\n5. General Fitness & Wellbeing\n\nOr type your own specific goal.",
+    "How would you describe your current fitness level?\n\n1. Beginner (New to consistent exercise)\n2. Intermediate (Regular workouts for 6+ months)\n3. Advanced (Consistently training for 2+ years)",
+    "How many days per week can you dedicate to working out?\n\n1. 2-3 days\n2. 4-5 days\n3. 6+ days\n\nYou can also type an exact number.",
+    "Do you have any physical limitations, injuries or health conditions I should know about?\n\n1. No limitations\n2. Joint issues (specify which joints)\n3. Back problems\n4. Heart/cardiovascular condition\n5. Other (please specify)",
+    "What equipment do you have access to for workouts?\n\n1. Full gym membership\n2. Home gym with basic equipment\n3. Minimal equipment (dumbbells, resistance bands)\n4. Bodyweight only (no equipment)",
+    "What's your approximate height and weight? This helps me tailor recommendations that are safe and effective for your body type.\n\nFor example: 5'10\" and 180 lbs, or 175 cm and 82 kg",
+    "What's your age range? This helps optimize recovery recommendations.\n\n1. 18-29\n2. 30-39\n3. 40-49\n4. 50-59\n5. 60+\n\nOr you can provide your specific age if you prefer."
   ];
 
   // Set up initial greeting message
@@ -95,7 +95,7 @@ export default function InteractiveAITrainer({
     if (messages.length === 0) {
       const initialMessages = [{
         id: 'welcome',
-        content: "👋 **Welcome to Your Interactive AI Trainer!**\n\nI'm here to help you achieve your fitness goals. I can create a personalized workout plan, nutritional guidance, and answer questions about your training.\n\n💡 **How It Works**\n• Chat with me just like a real trainer\n• I'll learn about your goals and fitness level\n• I'll create custom workout plans for you\n• Your plan will update on your dashboard\n\n**What would you like to focus on today?**",
+        content: "👋 **Welcome to Your Interactive AI Trainer!**\n\nI'm here to help you achieve your fitness goals. I can create a personalized workout plan, nutritional guidance, and answer questions about your training.\n\n💡 **How It Works**\n• Chat with me like a real trainer - I'll ask one question at a time\n• I'll guide you through a simple step-by-step process\n• Answer each question to help me understand your goals\n• I'll create a fully personalized workout plan just for you\n• Your plan will update on your dashboard\n\n**What would you like to focus on today?**",
         role: 'assistant' as const,
         timestamp: new Date()
       }];
@@ -291,7 +291,7 @@ export default function InteractiveAITrainer({
     // Add initial onboarding message
     setMessages(prev => [...prev, {
       id: 'onboarding-start',
-      content: "Great! Let's create your personalized fitness profile. I'll ask you a series of questions to better understand your goals and current fitness level. This will help me create a customized plan just for you.",
+      content: "Great! Let's create your personalized fitness profile. I'll guide you through a simple step-by-step process with one question at a time. I'll use your answers to create a fully customized plan just for you.\n\nLet's start with the basics:",
       role: 'assistant',
       timestamp: new Date()
     }]);
