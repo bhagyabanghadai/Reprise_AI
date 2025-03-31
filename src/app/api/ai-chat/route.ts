@@ -36,13 +36,15 @@ Your core abilities include:
 4. Answering fitness-related questions with scientifically accurate information
 5. Motivating users with encouraging feedback
 
-INTERACTION GUIDELINES - VERY IMPORTANT:
-- Ask ONE question at a time - do not overwhelm the user with multiple questions in a single message
-- For each step of information gathering, provide clear selectable options the user can choose from
-- Wait for the user's response to each individual question before proceeding to the next one
-- Follow a logical conversation flow: first goal, then fitness level, then equipment, then time available, then any limitations
-- Be conversational and friendly, as if having a natural dialogue
-- If collecting multiple related pieces of information, present them as separate questions in separate messages
+INTERACTION GUIDELINES - ABSOLUTELY CRITICAL TO FOLLOW:
+- YOU MUST ONLY ASK ONE SINGLE QUESTION PER RESPONSE - THIS IS THE MOST IMPORTANT RULE
+- Never list multiple questions in a single response, even if related
+- Each response should focus on just ONE piece of information to collect
+- Present 3-5 numbered or bulleted response options for the user to choose from 
+- Wait for the user to respond before moving to the next question
+- Follow this sequence: 1) goal, 2) fitness level, 3) equipment, 4) time available, 5) limitations
+- No matter what the user says initially, stick to this step-by-step, one-question-at-a-time approach
+- If the user provides multiple pieces of information, acknowledge just one, use it, and then ask about the next topic
 
 For example, instead of asking for multiple pieces of information at once, break it down:
 1. First message: "What's your primary fitness goal? (Strength, Weight Loss, Muscle Gain, etc.)"
@@ -323,30 +325,22 @@ Would you like me to adjust this plan based on any specific equipment or time co
       }
       // General fitness advice
       else {
-        responseText = `## Personalized Fitness Guidance
+        responseText = `## Let's Start Your Fitness Journey!
 
-Thank you for reaching out! I'd be happy to help you on your fitness journey.
+Thank you for reaching out! I'm here to create a personalized fitness plan just for you.
 
-To provide you with the most personalized advice, I'd like to learn more about:
+Let's begin with the most important question:
 
-1. **Your current fitness level** (beginner, intermediate, advanced)
-2. **Your primary fitness goals** (strength, muscle gain, weight loss, endurance, etc.)
-3. **Available equipment** (gym access, home equipment, etc.)
-4. **Time available** for training each week
-5. **Any limitations or injuries** I should be aware of
+**What's your primary fitness goal?** Select one from these options:
 
-This information will help me create tailored recommendations that align with your specific situation.
+1. Build muscle and strength
+2. Lose weight and burn fat
+3. Improve endurance and stamina
+4. Enhance athletic performance
+5. General health and wellness
+6. Other (please specify)
 
-In the meantime, here are some general fitness principles that apply to most goals:
-
-### Fundamental Fitness Principles
-- **Consistency** is more important than intensity
-- **Progressive overload** (gradually increasing difficulty) drives improvement
-- **Balanced nutrition** should support your activity level
-- **Recovery** is when your body actually adapts and improves
-- **Proper form** prevents injury and maximizes results
-
-Would you mind sharing more details about your current situation and goals so I can provide more specific guidance?`;
+Once I know your main goal, I'll ask follow-up questions one at a time to create your perfect plan.`;
       }
       
       aiResponse = responseText;
@@ -391,17 +385,97 @@ Would you mind sharing more details about your current situation and goals so I 
     
     // Extract JSON data if present in the response
     if (actionRequired && actionType) {
-      const jsonMatch = aiResponse.match(/```json\n([\s\S]*?)\n```/);
-      
-      if (jsonMatch && jsonMatch[1]) {
-        try {
-          extractedData = JSON.parse(jsonMatch[1]);
-          
-          // Clean the visible response by removing the JSON block
-          aiResponse = aiResponse.replace(/```json\n[\s\S]*?\n```/, '');
-        } catch (error) {
-          console.error('Error parsing JSON from AI response:', error);
+      try {
+        // Try different JSON block patterns
+        const jsonPatternsWithCapture = [
+          /```json\n([\s\S]*?)\n```/,      // Standard format
+          /```\n([\s\S]*?)\n```/,          // Missing json keyword
+          /```([\s\S]*?)```/               // No newlines
+        ];
+        
+        const jsonPatternsWithoutCapture = [
+          /```json[\s\S]*?```/,            // Standard block, for removal only
+          /```[\s\S]*?```/                 // Any code block, for removal only
+        ];
+        
+        let jsonString = null;
+        let matchedPattern = null;
+        
+        // First try patterns with capture groups
+        for (const pattern of jsonPatternsWithCapture) {
+          const match = aiResponse.match(pattern);
+          if (match && match[1]) {
+            jsonString = match[1].trim();
+            
+            // Try to parse and exit loop if successful
+            try {
+              extractedData = JSON.parse(jsonString);
+              matchedPattern = pattern;
+              break;
+            } catch (error: any) {
+              // If parsing fails, continue to the next pattern
+              console.log(`Failed to parse with pattern ${pattern}: ${error.message}`);
+            }
+          }
         }
+        
+        // If we found and parsed JSON, remove it from the response
+        if (extractedData && matchedPattern) {
+          aiResponse = aiResponse.replace(matchedPattern, '');
+        }
+        
+        // If we didn't find JSON with any pattern, but the message has a JSON-like structure
+        if (!extractedData && aiResponse.includes('{') && aiResponse.includes('}')) {
+          const possibleJson = aiResponse.substring(
+            aiResponse.indexOf('{'), 
+            aiResponse.lastIndexOf('}') + 1
+          );
+          
+          try {
+            extractedData = JSON.parse(possibleJson);
+            // If successful, remove the JSON from the response
+            aiResponse = aiResponse.replace(possibleJson, '');
+          } catch (error: any) {
+            console.log(`Failed to parse extracted JSON: ${error.message}`);
+          }
+        }
+      } catch (error) {
+        console.error('Error extracting JSON data:', error);
+      }
+    }
+    
+    // Post-process the response to ensure it's only asking one question
+    // This is a safety mechanism in case the model doesn't follow our instructions
+    
+    // Count the number of question marks - if there are too many, it might be asking multiple questions
+    const questionMarkCount = (aiResponse.match(/\?/g) || []).length;
+    
+    // Check if response is asking too many questions
+    if (questionMarkCount > 2) {
+      // Extract just the first question if there appear to be multiple questions
+      const sentences = aiResponse.split(/(?<=[.!?])\s+/);
+      let processedResponse = "";
+      let foundQuestion = false;
+      
+      // Keep all content until we find the first question
+      for (const sentence of sentences) {
+        processedResponse += sentence + " ";
+        
+        // If we encounter a question and haven't found one yet, mark it
+        if (sentence.includes('?') && !foundQuestion) {
+          foundQuestion = true;
+        }
+        
+        // If we've already found a question and this sentence also has a question mark,
+        // stop including more sentences (only include one question)
+        if (foundQuestion && sentence.includes('?')) {
+          break;
+        }
+      }
+      
+      // If we successfully extracted a question, use the processed response
+      if (foundQuestion) {
+        aiResponse = processedResponse;
       }
     }
 
