@@ -3,7 +3,8 @@ import { UserProfile } from '@/lib/db';
 
 // Llama API integration for AI workout recommendations
 const LLAMA_API_KEY = process.env.LLAMA_API_KEY;
-const LLAMA_API_ENDPOINT = 'https://api.perplexity.ai/chat/completions';
+// Using Nvidia's API endpoint for Llama model
+const LLAMA_API_ENDPOINT = 'https://integrate.api.nvidia.com/v1/chat/completions';
 
 export interface WorkoutPlan {
   day: string;
@@ -30,7 +31,7 @@ export interface AIRecommendation {
  */
 export async function generateWorkoutPlan(
   userId: string,
-  userProfile: UserProfile,
+  userProfile: any, // Using any to avoid type conflicts
   recentWorkouts: any[] = [],
   availableExercises: Exercise[]
 ): Promise<AIRecommendation> {
@@ -95,7 +96,7 @@ export async function generateWorkoutPlan(
         'Authorization': `Bearer ${LLAMA_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'llama-3-sonar-large-32k-chat',
+        model: 'nvidia/llama-3.1-nemotron-70b-instruct',
         messages: [
           { role: 'system', content: 'You are an expert fitness coach who creates personalized workout plans. You always respond with valid JSON objects only.' },
           { role: 'user', content: prompt }
@@ -131,7 +132,7 @@ export async function generateWorkoutPlan(
  */
 export async function analyzeWorkout(
   workout: any,
-  userProfile: UserProfile,
+  userProfile: any, // Using any to avoid type conflicts
   previousWorkouts: any[] = []
 ): Promise<string[]> {
   try {
@@ -167,7 +168,7 @@ export async function analyzeWorkout(
         'Authorization': `Bearer ${LLAMA_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'llama-3-sonar-large-32k-chat',
+        model: 'nvidia/llama-3.1-nemotron-70b-instruct',
         messages: [
           { role: 'system', content: 'You are an expert fitness coach who analyzes workouts and provides helpful feedback. You always respond with valid JSON arrays only.' },
           { role: 'user', content: prompt }

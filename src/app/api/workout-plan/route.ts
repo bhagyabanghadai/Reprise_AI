@@ -23,11 +23,13 @@ export async function GET(request: Request) {
     type WorkoutLogWithExercise = {
       id: number;
       userId: string;
-      exerciseId: number;
+      exerciseId: number | null;
       sets: number;
       reps: number;
       weight: string | number;
-      date: Date | null;
+      date?: Date | null;
+      createdAt?: Date | null;
+      rpe?: number | null;
       notes?: string | null;
       exercise?: any;
     };
@@ -49,7 +51,7 @@ export async function GET(request: Request) {
             .select()
             .from(workoutLogs)
             .where(eq(workoutLogs.userId, userId))
-            .orderBy(workoutLogs.date) // Default order is ascending, most recent will be last
+            .orderBy(workoutLogs.createdAt) // Default order is ascending, most recent will be last
             .limit(20);
             
           // Join with exercise data
@@ -74,10 +76,21 @@ export async function GET(request: Request) {
         userProfile = {
           id: 0,
           userId: userId,
+          name: null,
+          email: null,
+          height: null,
+          weight: null,
           fitnessLevel: 'beginner',
           fitnessGoals: { primary: 'strength', secondary: ['muscle_building'] },
-          equipment: ['bodyweight', 'dumbbell'],
-          workoutPreference: { daysPerWeek: 3 }
+          trainingHistory: { 
+            equipment: ['bodyweight', 'dumbbell'],
+            workoutPreference: { daysPerWeek: 3 }
+          },
+          strengthLimits: {},
+          injuryHistory: {},
+          recoveryMetrics: {},
+          createdAt: new Date(),
+          updatedAt: new Date()
         };
       }
     } catch (profileError) {
@@ -86,10 +99,21 @@ export async function GET(request: Request) {
       userProfile = {
         id: 0,
         userId: userId,
+        name: null,
+        email: null,
+        height: null,
+        weight: null,
         fitnessLevel: 'beginner',
         fitnessGoals: { primary: 'strength', secondary: ['muscle_building'] },
-        equipment: ['bodyweight', 'dumbbell'],
-        workoutPreference: { daysPerWeek: 3 }
+        trainingHistory: { 
+          equipment: ['bodyweight', 'dumbbell'],
+          workoutPreference: { daysPerWeek: 3 }
+        },
+        strengthLimits: {},
+        injuryHistory: {},
+        recoveryMetrics: {},
+        createdAt: new Date(),
+        updatedAt: new Date()
       };
     }
 
