@@ -1,16 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { useToast } from './ui/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Search, Filter, X } from 'lucide-react';
 
 interface Exercise {
   id: number;
   name: string;
   description: string;
   muscleGroup: string;
+  category: string;
 }
 
 interface WorkoutFormProps {
@@ -29,6 +30,9 @@ export default function WorkoutForm({ userId }: WorkoutFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [isExercisesLoading, setIsExercisesLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -56,6 +60,34 @@ export default function WorkoutForm({ userId }: WorkoutFormProps) {
 
     fetchExercises();
   }, [toast]);
+
+  // Extract unique muscle groups and categories for filtering
+  const muscleGroups = useMemo(() => {
+    const groups = Array.from(new Set(exercises.map(ex => ex.muscleGroup)));
+    return groups.sort();
+  }, [exercises]);
+
+  const categories = useMemo(() => {
+    const cats = Array.from(new Set(exercises.map(ex => ex.category)));
+    return cats.sort();
+  }, [exercises]);
+
+  // Filter exercises based on search and filters
+  const filteredExercises = useMemo(() => {
+    return exercises.filter(exercise => {
+      const matchesSearch = searchTerm === '' || 
+        exercise.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        exercise.description.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesMuscleGroup = selectedMuscleGroup === '' || 
+        exercise.muscleGroup === selectedMuscleGroup;
+      
+      const matchesCategory = selectedCategory === '' || 
+        exercise.category === selectedCategory;
+      
+      return matchesSearch && matchesMuscleGroup && matchesCategory;
+    });
+  }, [exercises, searchTerm, selectedMuscleGroup, selectedCategory]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,6 +134,13 @@ export default function WorkoutForm({ userId }: WorkoutFormProps) {
     }
   };
 
+  // Clear all filters
+  const resetFilters = () => {
+    setSearchTerm('');
+    setSelectedMuscleGroup('');
+    setSelectedCategory('');
+  };
+
   if (isExercisesLoading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -112,6 +151,70 @@ export default function WorkoutForm({ userId }: WorkoutFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700 mb-4">
+        <h3 className="text-white text-lg font-semibold mb-3">Find Exercises</h3>
+        
+        {/* Search bar */}
+        <div className="relative mb-3">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+          <Input
+            type="text"
+            placeholder="Search exercises..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="bg-white/5 border-gray-600 text-white pl-10"
+          />
+        </div>
+        
+        {/* Filters */}
+        <div className="grid grid-cols-2 gap-3 mb-2">
+          <div>
+            <label className="block text-gray-300 text-sm mb-1">Muscle Group</label>
+            <select
+              value={selectedMuscleGroup}
+              onChange={(e) => setSelectedMuscleGroup(e.target.value)}
+              className="w-full p-2 rounded-lg bg-white/5 border border-gray-600 text-white text-sm"
+            >
+              <option value="">All Muscle Groups</option>
+              {muscleGroups.map((group) => (
+                <option key={group} value={group}>
+                  {group.charAt(0).toUpperCase() + group.slice(1)}
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          <div>
+            <label className="block text-gray-300 text-sm mb-1">Category</label>
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="w-full p-2 rounded-lg bg-white/5 border border-gray-600 text-white text-sm"
+            >
+              <option value="">All Categories</option>
+              {categories.map((category) => (
+                <option key={category} value={category}>
+                  {category.charAt(0).toUpperCase() + category.slice(1)}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+        
+        {/* Reset filters button */}
+        {(searchTerm || selectedMuscleGroup || selectedCategory) && (
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={resetFilters}
+              className="flex items-center text-sm text-gray-300 hover:text-white"
+            >
+              <X size={14} className="mr-1" /> Clear filters
+            </button>
+          </div>
+        )}
+      </div>
+
       <div>
         <label className="block text-white mb-1">Exercise</label>
         <select
@@ -121,12 +224,22 @@ export default function WorkoutForm({ userId }: WorkoutFormProps) {
           required
         >
           <option value="">Select exercise</option>
-          {Array.isArray(exercises) && exercises.map((exercise) => (
-            <option key={exercise.id} value={exercise.id}>
-              {exercise.name}
-            </option>
-          ))}
+          {filteredExercises.length === 0 ? (
+            <option value="" disabled>No matching exercises found</option>
+          ) : (
+            filteredExercises.map((exercise) => (
+              <option key={exercise.id} value={exercise.id}>
+                {exercise.name} ({exercise.muscleGroup})
+              </option>
+            ))
+          )}
         </select>
+        
+        {workout.exerciseId && (
+          <div className="mt-2 text-sm text-gray-300 bg-gray-800/30 p-2 rounded border border-gray-700">
+            {exercises.find(ex => ex.id.toString() === workout.exerciseId)?.description}
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -172,15 +285,23 @@ export default function WorkoutForm({ userId }: WorkoutFormProps) {
         </div>
         <div>
           <label className="block text-white mb-1">RPE (1-10)</label>
-          <Input
-            type="number"
-            min="1"
-            max="10"
-            value={workout.rpe}
-            onChange={(e) => setWorkout({ ...workout, rpe: e.target.value })}
-            placeholder="Rate of Perceived Exertion"
-            className="bg-white/5 border-gray-600 text-white"
-          />
+          <div className="relative">
+            <Input
+              type="number"
+              min="1"
+              max="10"
+              value={workout.rpe}
+              onChange={(e) => setWorkout({ ...workout, rpe: e.target.value })}
+              placeholder="Rate of Perceived Exertion"
+              className="bg-white/5 border-gray-600 text-white"
+            />
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+              <span className="text-xs text-gray-400 hover:text-white cursor-help"
+                title="RPE = Rate of Perceived Exertion. A scale from 1-10 indicating how difficult the set was. 10 = maximum effort (couldn't do one more rep)">
+                ?
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 
