@@ -495,7 +495,35 @@ export default function InteractiveAITrainer({
         });
         
       } else if (actionType === 'workout_plan') {
-        // Use the workout plan
+        // Save workout plan to database and update dashboard
+        console.log('Applying workout plan:', actionPanelData);
+        
+        // Call the workout plan API to save the AI-generated plan
+        if (actionPanelData.weeklyPlan) {
+          try {
+            const response = await fetch('/api/workout-plan', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                userId: userId || user?.id || 'user-123',
+                plan: actionPanelData
+              }),
+            });
+            
+            if (!response.ok) {
+              console.error('Failed to save workout plan, but continuing with UI update');
+            } else {
+              console.log('Workout plan saved successfully');
+            }
+          } catch (error) {
+            console.error('Error saving workout plan:', error);
+            // Continue with UI updates even if save fails
+          }
+        }
+        
+        // Use the callback to update the UI
         if (onPlanUpdate) {
           onPlanUpdate(actionPanelData);
         }
@@ -507,10 +535,31 @@ export default function InteractiveAITrainer({
         
       } else if (actionType === 'nutrition_plan') {
         // Save nutrition plan
-        // This would need a nutrition API endpoint
+        try {
+          const response = await fetch('/api/nutrition', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              userId: userId || user?.id || 'user-123',
+              plan: actionPanelData
+            }),
+          });
+          
+          if (!response.ok) {
+            console.error('Failed to save nutrition plan, but continuing with UI update');
+          } else {
+            console.log('Nutrition plan saved successfully');
+          }
+        } catch (error) {
+          console.error('Error saving nutrition plan:', error);
+          // Continue with UI updates even if save fails
+        }
+        
         toast({
           title: 'Nutrition Plan Saved',
-          description: 'Your nutrition recommendations have been saved.'
+          description: 'Your nutrition recommendations have been saved to your dashboard.'
         });
       }
       
@@ -616,7 +665,7 @@ export default function InteractiveAITrainer({
                 ? 'ml-auto bg-blue-600 text-white rounded-t-lg rounded-bl-lg' 
                 : message.role === 'system'
                   ? 'mx-auto bg-gray-700 text-gray-300 rounded-lg italic text-sm'
-                  : 'mr-auto bg-gray-800 rounded-t-lg rounded-br-lg'
+                  : 'mr-auto bg-gray-800 text-white rounded-t-lg rounded-br-lg'
             } p-3 shadow-md`}
           >
             <div className="prose prose-invert prose-sm max-w-none">

@@ -5,7 +5,8 @@ const LLAMA_API_KEY = process.env.LLAMA_API_KEY;
 // Use Perplexity's endpoint if we have a Llama API key
 const PERPLEXITY_API_ENDPOINT = 'https://api.perplexity.ai/chat/completions';
 // Use a fallback model if we're having API issues or for testing
-const USE_FALLBACK = !LLAMA_API_KEY || LLAMA_API_KEY === 'dummy_key';
+// Setting to true temporarily while we fix the API key
+const USE_FALLBACK = true;
 
 interface Message {
   role: 'user' | 'assistant' | 'system';
