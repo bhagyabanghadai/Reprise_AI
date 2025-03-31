@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 
 const LLAMA_API_KEY = process.env.LLAMA_API_KEY;
-// Use Perplexity's endpoint if we have a Llama API key
-const PERPLEXITY_API_ENDPOINT = 'https://api.perplexity.ai/chat/completions';
+// Switch to using Nvidia's Llama model endpoint
+const NVIDIA_API_ENDPOINT = 'https://integrate.api.nvidia.com/v1/chat/completions';
 // Use a fallback model if we're having API issues or for testing
 // Setting to true temporarily while we fix the API key
 const USE_FALLBACK = true;
@@ -315,19 +315,20 @@ Would you mind sharing more details about your current situation and goals so I 
       };
     } 
     else {
-      // Make the actual API call to Perplexity
-      console.log('Making API call to Perplexity AI');
-      const response = await fetch(PERPLEXITY_API_ENDPOINT, {
+      // Make the actual API call to Nvidia's Llama model
+      console.log('Making API call to Nvidia Llama AI');
+      const response = await fetch(NVIDIA_API_ENDPOINT, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${LLAMA_API_KEY}`
         },
         body: JSON.stringify({
-          model: 'llama-3-sonar-large-32k-chat',
+          model: 'nvidia/llama-3.1-nemotron-70b-instruct',
           messages,
-          temperature: 0.7,
-          max_tokens: 2000
+          temperature: 0.5,
+          top_p: 1,
+          max_tokens: 1024
         })
       });
 
