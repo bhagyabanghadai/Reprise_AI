@@ -92,66 +92,28 @@ export default function InteractiveAITrainer({
 
   // Load chat history and set up initial greeting message
   useEffect(() => {
-    const loadChatHistory = async () => {
-      if (userId) {
-        setLoading(true);
-        try {
-          // Fetch chat history from the API
-          const response = await fetch(`/api/chat/messages?userId=${userId}`);
-          
-          if (response.ok) {
-            const data = await response.json();
-            
-            if (data.messages && data.messages.length > 0) {
-              // Transform messages to match our expected format
-              const formattedMessages = data.messages.map((msg: any) => ({
-                id: msg.id.toString(),
-                content: msg.content,
-                role: msg.role,
-                timestamp: new Date(msg.timestamp),
-                metadata: msg.metadata
-              })).sort((a: any, b: any) => a.timestamp.getTime() - b.timestamp.getTime());
-              
-              setMessages(formattedMessages);
-              setLoading(false);
-              return; // We have messages, no need for welcome message
-            }
-          }
-        } catch (error) {
-          console.error('Error loading chat history:', error);
-          toast({
-            title: 'Error',
-            description: 'Failed to load chat history',
-            variant: 'destructive'
-          });
-        } finally {
-          setLoading(false);
-        }
-      }
-      
-      // If no history or error, show welcome message
-      const initialMessages = [{
-        id: 'welcome',
-        content: "👋 **Welcome to Your Interactive AI Trainer!**\n\nI'm here to help you achieve your fitness goals. I can create a personalized workout plan, nutritional guidance, and answer questions about your training.\n\n💡 **How It Works**\n• Chat with me like a real trainer - I'll ask one question at a time\n• I'll guide you through a simple step-by-step process\n• Answer each question to help me understand your goals\n• I'll create a fully personalized workout plan just for you\n• Your plan will update on your dashboard\n\n**What would you like to focus on today?**",
-        role: 'assistant' as const,
-        timestamp: new Date()
-      }];
-      
-      // If there's an initial message, display it as an assistant message
-      if (initialMessage) {
-        initialMessages.push({
-          id: 'system-initial',
-          content: initialMessage,
-          role: 'assistant' as const, // Use assistant role for all visible messages
-          timestamp: new Date()
-        });
-      }
-      
-      setMessages(initialMessages);
-    };
+    // Skip loading chat history for now to fix the infinite loop issue
+    // We'll just start with the welcome message for everyone
     
-    loadChatHistory();
-  }, [userId, initialMessage, toast]);
+    const initialMessages = [{
+      id: 'welcome',
+      content: "👋 **Welcome to Your Interactive AI Trainer!**\n\nI'm here to help you achieve your fitness goals. I can create a personalized workout plan, nutritional guidance, and answer questions about your training.\n\n💡 **How It Works**\n• Chat with me like a real trainer - I'll ask one question at a time\n• I'll guide you through a simple step-by-step process\n• Answer each question to help me understand your goals\n• I'll create a fully personalized workout plan just for you\n• Your plan will update on your dashboard\n\n**What would you like to focus on today?**",
+      role: 'assistant' as const,
+      timestamp: new Date()
+    }];
+    
+    // If there's an initial message, display it as an assistant message
+    if (initialMessage) {
+      initialMessages.push({
+        id: 'system-initial',
+        content: initialMessage,
+        role: 'assistant' as const, // Use assistant role for all visible messages
+        timestamp: new Date()
+      });
+    }
+    
+    setMessages(initialMessages);
+  }, [initialMessage]);
 
   // Auto-scroll to bottom of messages
   useEffect(() => {
@@ -390,7 +352,7 @@ export default function InteractiveAITrainer({
     if (!userId) return;
     
     try {
-      await fetch('/api/chat/messages', {
+      const response = await fetch('/api/chat/messages', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -402,8 +364,15 @@ export default function InteractiveAITrainer({
           metadata: message.metadata || null
         }),
       });
+      
+      if (!response.ok) {
+        throw new Error('Failed to save message to database');
+      }
+      
+      return true;
     } catch (error) {
       console.error('Error saving message to database:', error);
+      return false;
     }
   };
 
