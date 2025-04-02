@@ -90,9 +90,46 @@ export default function InteractiveAITrainer({
     "What's your age range? This helps optimize recovery recommendations.\n\n1. 18-29\n2. 30-39\n3. 40-49\n4. 50-59\n5. 60+\n\nOr you can provide your specific age if you prefer."
   ];
 
-  // Set up initial greeting message
+  // Load chat history and set up initial greeting message
   useEffect(() => {
-    if (messages.length === 0) {
+    const loadChatHistory = async () => {
+      if (userId) {
+        setLoading(true);
+        try {
+          // Fetch chat history from the API
+          const response = await fetch(`/api/chat/messages?userId=${userId}`);
+          
+          if (response.ok) {
+            const data = await response.json();
+            
+            if (data.messages && data.messages.length > 0) {
+              // Transform messages to match our expected format
+              const formattedMessages = data.messages.map((msg: any) => ({
+                id: msg.id.toString(),
+                content: msg.content,
+                role: msg.role,
+                timestamp: new Date(msg.timestamp),
+                metadata: msg.metadata
+              })).sort((a: any, b: any) => a.timestamp.getTime() - b.timestamp.getTime());
+              
+              setMessages(formattedMessages);
+              setLoading(false);
+              return; // We have messages, no need for welcome message
+            }
+          }
+        } catch (error) {
+          console.error('Error loading chat history:', error);
+          toast({
+            title: 'Error',
+            description: 'Failed to load chat history',
+            variant: 'destructive'
+          });
+        } finally {
+          setLoading(false);
+        }
+      }
+      
+      // If no history or error, show welcome message
       const initialMessages = [{
         id: 'welcome',
         content: "👋 **Welcome to Your Interactive AI Trainer!**\n\nI'm here to help you achieve your fitness goals. I can create a personalized workout plan, nutritional guidance, and answer questions about your training.\n\n💡 **How It Works**\n• Chat with me like a real trainer - I'll ask one question at a time\n• I'll guide you through a simple step-by-step process\n• Answer each question to help me understand your goals\n• I'll create a fully personalized workout plan just for you\n• Your plan will update on your dashboard\n\n**What would you like to focus on today?**",
@@ -111,8 +148,10 @@ export default function InteractiveAITrainer({
       }
       
       setMessages(initialMessages);
-    }
-  }, []);
+    };
+    
+    loadChatHistory();
+  }, [userId, initialMessage, toast]);
 
   // Auto-scroll to bottom of messages
   useEffect(() => {
@@ -346,6 +385,28 @@ export default function InteractiveAITrainer({
     setOnboardingStep(prev => prev + 1);
   };
 
+  // Save message to database
+  const saveMessageToDb = async (message: Message) => {
+    if (!userId) return;
+    
+    try {
+      await fetch('/api/chat/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+          content: message.content,
+          role: message.role,
+          metadata: message.metadata || null
+        }),
+      });
+    } catch (error) {
+      console.error('Error saving message to database:', error);
+    }
+  };
+
   const sendMessage = async () => {
     if (!inputValue.trim()) return;
     
@@ -368,6 +429,9 @@ export default function InteractiveAITrainer({
     setMessages(prev => [...prev, userMessage]);
     setInputValue('');
     setLoading(true);
+    
+    // Save user message to database
+    await saveMessageToDb(userMessage);
     
     try {
       // Process special commands
@@ -449,6 +513,9 @@ export default function InteractiveAITrainer({
       
       // Add AI message to chat
       setMessages(prev => [...prev, aiMessage]);
+      
+      // Save AI message to database
+      await saveMessageToDb(aiMessage);
       
       // If action required, show action panel
       if (actionRequired && extractedData) {
@@ -616,6 +683,46 @@ export default function InteractiveAITrainer({
   const handleSendStarter = (starter: string) => {
     setInputValue(starter);
     sendMessage();
+  };
+  
+  const clearChatHistory = async () => {
+    if (!userId) return;
+    
+    if (confirm('Are you sure you want to clear your chat history? This cannot be undone.')) {
+      setLoading(true);
+      try {
+        const response = await fetch(`/api/chat/messages?userId=${userId}`, {
+          method: 'DELETE',
+        });
+        
+        if (response.ok) {
+          // Reset to welcome message
+          const initialMessages = [{
+            id: 'welcome',
+            content: "👋 **Welcome to Your Interactive AI Trainer!**\n\nI'm here to help you achieve your fitness goals. I can create a personalized workout plan, nutritional guidance, and answer questions about your training.\n\n💡 **How It Works**\n• Chat with me like a real trainer - I'll ask one question at a time\n• I'll guide you through a simple step-by-step process\n• Answer each question to help me understand your goals\n• I'll create a fully personalized workout plan just for you\n• Your plan will update on your dashboard\n\n**What would you like to focus on today?**",
+            role: 'assistant' as const,
+            timestamp: new Date()
+          }];
+          
+          setMessages(initialMessages);
+          toast({
+            title: 'Chat History Cleared',
+            description: 'Your conversation history has been deleted.'
+          });
+        } else {
+          throw new Error('Failed to clear chat history');
+        }
+      } catch (error) {
+        console.error('Error clearing chat history:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to clear chat history. Please try again.',
+          variant: 'destructive'
+        });
+      } finally {
+        setLoading(false);
+      }
+    }
   };
 
   // Main component render
@@ -790,6 +897,13 @@ export default function InteractiveAITrainer({
                 >
                   <Smile className="h-3 w-3 mr-1" />
                   {showIntro ? 'Hide Suggestions' : 'Show Suggestions'}
+                </button>
+                <button
+                  onClick={clearChatHistory}
+                  className="p-2 text-xs text-cyan-300 hover:text-cyan-100 flex items-center"
+                >
+                  <RefreshCw className="h-3 w-3 mr-1" />
+                  Clear History
                 </button>
               </div>
               <button
