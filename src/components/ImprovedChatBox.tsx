@@ -53,7 +53,7 @@ export function ImprovedAIChat({ isOpen, onClose }: AIChatProps) {
             // No messages found, set welcome message
             setMessages([{
               id: 'welcome',
-              content: "👋 **Welcome to Your AI Fitness Coach!**\n\nI'm here to help you with your fitness journey. I can provide workout tips, nutrition advice, answer fitness questions, and more. How can I assist you today?",
+              content: "👋 **Welcome to Reprise AI Coach!**\n\nI'm here to help you with your fitness journey. I can provide workout tips, nutrition advice, answer fitness questions, and more. How can I assist you today?",
               role: 'assistant',
               timestamp: new Date()
             }]);
@@ -63,7 +63,7 @@ export function ImprovedAIChat({ isOpen, onClose }: AIChatProps) {
           console.error('Failed to fetch chat history');
           setMessages([{
             id: 'welcome',
-            content: "👋 **Welcome to Your AI Fitness Coach!**\n\nI'm here to help you with your fitness journey. I can provide workout tips, nutrition advice, answer fitness questions, and more. How can I assist you today?",
+            content: "👋 **Welcome to Reprise AI Coach!**\n\nI'm here to help you with your fitness journey. I can provide workout tips, nutrition advice, answer fitness questions, and more. How can I assist you today?",
             role: 'assistant',
             timestamp: new Date()
           }]);
@@ -72,7 +72,7 @@ export function ImprovedAIChat({ isOpen, onClose }: AIChatProps) {
         console.error('Error fetching chat history:', error);
         setMessages([{
           id: 'welcome',
-          content: "👋 **Welcome to Your AI Fitness Coach!**\n\nI'm here to help you with your fitness journey. I can provide workout tips, nutrition advice, answer fitness questions, and more. How can I assist you today?",
+          content: "👋 **Welcome to Reprise AI Coach!**\n\nI'm here to help you with your fitness journey. I can provide workout tips, nutrition advice, answer fitness questions, and more. How can I assist you today?",
           role: 'assistant',
           timestamp: new Date()
         }]);
@@ -210,7 +210,7 @@ export function ImprovedAIChat({ isOpen, onClose }: AIChatProps) {
       <div className="bg-white dark:bg-gray-900 rounded-lg w-full max-w-2xl h-[80vh] flex flex-col overflow-hidden shadow-xl">
         {/* Header */}
         <div className="flex justify-between items-center p-4 border-b dark:border-gray-700">
-          <h2 className="text-lg font-semibold">AI Fitness Coach</h2>
+          <h2 className="text-lg font-semibold">Reprise AI Coach</h2>
           <div className="flex items-center space-x-2">
             <button 
               onClick={async () => {
@@ -224,7 +224,7 @@ export function ImprovedAIChat({ isOpen, onClose }: AIChatProps) {
                     if (response.ok) {
                       setMessages([{
                         id: 'welcome',
-                        content: "👋 **Welcome to Your AI Fitness Coach!**\n\nI'm here to help you with your fitness journey. I can provide workout tips, nutrition advice, answer fitness questions, and more. How can I assist you today?",
+                        content: "👋 **Welcome to Reprise AI Coach!**\n\nI'm here to help you with your fitness journey. I can provide workout tips, nutrition advice, answer fitness questions, and more. How can I assist you today?",
                         role: 'assistant',
                         timestamp: new Date()
                       }]);
@@ -232,7 +232,7 @@ export function ImprovedAIChat({ isOpen, onClose }: AIChatProps) {
                       // Save the welcome message to database
                       await saveMessageToDb({
                         id: 'welcome',
-                        content: "👋 **Welcome to Your AI Fitness Coach!**\n\nI'm here to help you with your fitness journey. I can provide workout tips, nutrition advice, answer fitness questions, and more. How can I assist you today?",
+                        content: "👋 **Welcome to Reprise AI Coach!**\n\nI'm here to help you with your fitness journey. I can provide workout tips, nutrition advice, answer fitness questions, and more. How can I assist you today?",
                         role: 'assistant',
                         timestamp: new Date()
                       });

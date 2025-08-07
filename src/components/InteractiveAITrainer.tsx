@@ -701,7 +701,7 @@ export default function InteractiveAITrainer({
       <div className="flex justify-between items-center p-4 border-b border-gray-700 bg-gray-800">
         <div className="flex items-center">
           <Brain className="h-5 w-5 mr-2 text-cyan-400" />
-          <h2 className="text-lg font-semibold text-white">AI Fitness Trainer</h2>
+          <h2 className="text-lg font-semibold text-white">Reprise AI Trainer</h2>
         </div>
         <div className="flex gap-2">
           {!isEmbedded && (
