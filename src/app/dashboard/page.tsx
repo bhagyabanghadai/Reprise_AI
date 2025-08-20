@@ -185,7 +185,7 @@ export default function Dashboard() {
           <div className="flex justify-between items-center">
             <div className="flex items-center">
               <Dumbbell className="h-8 w-8 text-cyan-400 mr-2" />
-              <span className="text-2xl font-bold text-white">FitAI</span>
+              <span className="text-2xl font-bold text-white">Reprise</span>
             </div>
             
             <div className="hidden md:flex space-x-6">

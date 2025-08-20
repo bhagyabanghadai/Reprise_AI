@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     // Prepare the conversation history - create a new array to avoid mutating the input
     const systemPrompt: Message = {
       role: 'system' as const,
-      content: `You are an expert AI fitness coach named FitAI. Your goal is to help users achieve their fitness goals by providing personalized advice, workout plans, and nutritional guidance.
+      content: `You are an expert AI fitness coach named Reprise. Your goal is to help users achieve their fitness goals by providing personalized advice, workout plans, and nutritional guidance.
 
 Your core abilities include:
 1. Creating personalized workout plans based on user's goals, fitness level, available equipment, and time constraints
