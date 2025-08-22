@@ -1,5 +1,6 @@
 import { Exercise, UserProfile, WorkoutLog, ProgressionHistory } from '@/lib/db';
-import { WorkoutPlan, AIRecommendation, generateBackupWeeklyPlan } from '@/lib/ai/workoutRecommendation';
+import type { WorkoutPlan, AIRecommendation } from '@/lib/ai/workoutRecommendation';
+import { generateBackupWeeklyPlan } from '@/lib/ai/workoutRecommendation';
 import { eq, desc, and } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { workoutLogs, progressionHistory } from '@/lib/db/schema';

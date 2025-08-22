@@ -85,13 +85,11 @@ export async function POST(request: Request) {
       await db.insert(userProfiles).values({
         userId: userId,
         strengthLimits: strengthLimits,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        // Set default values for required fields
         fitnessLevel: 'beginner',
         fitnessGoals: { primary: 'strength', secondary: [] },
-        equipment: [],
-        workoutPreference: { daysPerWeek: 3 },
+        trainingHistory: { equipment: [], workoutPreference: { daysPerWeek: 3 } },
+        injuryHistory: {},
+        recoveryMetrics: {}
       });
     }
 

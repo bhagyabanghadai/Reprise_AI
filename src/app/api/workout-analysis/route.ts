@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { db, userProfiles, workoutLogs } from '@/lib/db';
+import { db } from '@/lib/db';
+import { userProfiles, workoutLogs } from '@/lib/db/schema';
 import { analyzeWorkout } from '@/lib/ai/workoutRecommendation';
 import { eq } from 'drizzle-orm';
 
@@ -46,8 +47,8 @@ export async function POST(request: Request) {
     const previousWorkouts = await db.query.workoutLogs.findMany({
       where: (logs, { and, eq, lt }) => and(
         eq(logs.userId, userId),
-        eq(logs.exerciseId, currentWorkout.exerciseId),
-        lt(logs.date, currentWorkout.date)
+        eq(logs.exerciseId, currentWorkout.exerciseId!),
+        lt(logs.date, currentWorkout.date!)
       ),
       with: {
         exercise: true,

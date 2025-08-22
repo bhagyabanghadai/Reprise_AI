@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { db, exercises, userProfiles, workoutLogs, progressionHistory } from '@/lib/db';
+import { db } from '@/lib/db';
+import { exercises, userProfiles, workoutLogs, progressionHistory } from '@/lib/db/schema';
 import { generateAdvancedWorkoutPlan } from '@/lib/ai/advancedWorkoutRecommendation';
 import { eq } from 'drizzle-orm';
 

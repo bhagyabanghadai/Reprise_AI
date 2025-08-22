@@ -11,7 +11,7 @@ const progressPhotos = pgTable('progress_photos', {
   uuid: uuid('uuid').defaultRandom().notNull(),
   userId: text('user_id').notNull(),
   imageUrl: text('image_url').notNull(),
-  thumbnailUrl: text('thumbnail_url'),
+  thumbnailUrl: text('thumbnail_url').default(''),
   date: timestamp('date').defaultNow(),
   category: text('category').notNull(),
   notes: text('notes'),
@@ -26,24 +26,14 @@ interface ProgressPhoto {
   uuid?: string;
   userId: string;
   imageUrl: string;
-  thumbnailUrl?: string;
-  date: Date | string;
-  category: 'front' | 'back' | 'side' | 'other';
-  notes?: string;
-  bodyMetrics?: {
-    weight?: number;
-    bodyFatPercentage?: number;
-    measurements?: Record<string, number>; // e.g., { "chest": 42, "waist": 32 }
-  };
-  aiAnalysis?: {
-    bodyFatEstimate?: number;
-    muscleGainAreas?: string[];
-    recommendedFocus?: string[];
-    visualChanges?: string;
-    confidenceScore?: number;
-  };
-  createdAt?: Date | string;
-  updatedAt?: Date | string;
+  thumbnailUrl?: string | null;
+  date: Date | string | null;
+  category: string;
+  notes?: string | null;
+  bodyMetrics?: unknown;
+  aiAnalysis?: unknown;
+  createdAt?: Date | string | null;
+  updatedAt?: Date | string | null;
 }
 
 // Function to analyze progress photos with AI
@@ -76,20 +66,20 @@ async function analyzeProgressPhoto(imageUrl: string, previousPhotos: ProgressPh
     // In a real implementation, we'd use the AI model to analyze the actual images
     const mostRecentPhoto = previousPhotos[0];
     const currentDate = new Date();
-    const previousDate = new Date(mostRecentPhoto.date);
+    const previousDate = new Date(mostRecentPhoto.date || new Date());
     const monthsElapsed = (currentDate.getFullYear() - previousDate.getFullYear()) * 12 + 
                          (currentDate.getMonth() - previousDate.getMonth());
     
     if (monthsElapsed < 1) {
       return {
-        bodyFatEstimate: mostRecentPhoto.aiAnalysis?.bodyFatEstimate,
-        muscleGainAreas: mostRecentPhoto.aiAnalysis?.muscleGainAreas || [],
+        bodyFatEstimate: (mostRecentPhoto.aiAnalysis as any)?.bodyFatEstimate,
+        muscleGainAreas: (mostRecentPhoto.aiAnalysis as any)?.muscleGainAreas || [],
         recommendedFocus: ["consistency", "nutrition", "recovery"],
         visualChanges: "It's too soon to see significant changes. Keep up the good work and check back in a few weeks!",
         confidenceScore: 0.6
       };
     } else if (monthsElapsed < 3) {
-      const previousBf = mostRecentPhoto.aiAnalysis?.bodyFatEstimate || 20;
+      const previousBf = (mostRecentPhoto.aiAnalysis as any)?.bodyFatEstimate || 20;
       const newBf = Math.max(previousBf - (Math.random() * 2), 8);
       
       return {
@@ -100,7 +90,7 @@ async function analyzeProgressPhoto(imageUrl: string, previousPhotos: ProgressPh
         confidenceScore: 0.7
       };
     } else {
-      const previousBf = mostRecentPhoto.aiAnalysis?.bodyFatEstimate || 20;
+      const previousBf = (mostRecentPhoto.aiAnalysis as any)?.bodyFatEstimate || 20;
       const newBf = Math.max(previousBf - (Math.random() * 4), 8);
       
       return {
@@ -226,18 +216,18 @@ export async function GET(request: Request) {
       const latestPhoto = userPhotos[0]; // Newest photo
       
       // Calculate time elapsed
-      const startDate = new Date(firstPhoto.date);
-      const currentDate = new Date(latestPhoto.date);
+      const startDate = new Date(firstPhoto.date || new Date());
+      const currentDate = new Date(latestPhoto.date || new Date());
       const daysElapsed = Math.floor((currentDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
       const monthsElapsed = daysElapsed / 30;
       
       // Calculate weight and body fat changes if metrics exist
-      const startWeight = firstPhoto.bodyMetrics?.weight;
-      const currentWeight = latestPhoto.bodyMetrics?.weight;
+      const startWeight = (firstPhoto.bodyMetrics as any)?.weight;
+      const currentWeight = (latestPhoto.bodyMetrics as any)?.weight;
       const weightChange = startWeight && currentWeight ? currentWeight - startWeight : null;
       
-      const startBodyFat = firstPhoto.bodyMetrics?.bodyFatPercentage || firstPhoto.aiAnalysis?.bodyFatEstimate;
-      const currentBodyFat = latestPhoto.bodyMetrics?.bodyFatPercentage || latestPhoto.aiAnalysis?.bodyFatEstimate;
+      const startBodyFat = (firstPhoto.bodyMetrics as any)?.bodyFatPercentage || (firstPhoto.aiAnalysis as any)?.bodyFatEstimate;
+      const currentBodyFat = (latestPhoto.bodyMetrics as any)?.bodyFatPercentage || (latestPhoto.aiAnalysis as any)?.bodyFatEstimate;
       const bodyFatChange = startBodyFat && currentBodyFat ? currentBodyFat - startBodyFat : null;
       
       progressStats = {
@@ -253,8 +243,8 @@ export async function GET(request: Request) {
           total: parseFloat(bodyFatChange.toFixed(1)),
           perMonth: parseFloat((bodyFatChange / monthsElapsed).toFixed(1))
         } : null,
-        improvements: latestPhoto.aiAnalysis?.muscleGainAreas || [],
-        currentFocus: latestPhoto.aiAnalysis?.recommendedFocus || []
+        improvements: (latestPhoto.aiAnalysis as any)?.muscleGainAreas || [],
+        currentFocus: (latestPhoto.aiAnalysis as any)?.recommendedFocus || []
       };
     }
 
@@ -319,13 +309,25 @@ export async function POST(request: Request) {
     // Perform AI analysis on the photo
     const aiAnalysis = await analyzeProgressPhoto(imageUrl, previousPhotos);
     
-    // Create a new photo record
+    // Create a new photo record for database insertion
+    const dbPhoto = {
+      userId,
+      imageUrl,
+      thumbnailUrl,
+      date: new Date(),
+      category,
+      notes,
+      bodyMetrics: bodyMetrics || {},
+      aiAnalysis
+    };
+    
+    // Create the response photo object
     const newPhoto: ProgressPhoto = {
       userId,
       imageUrl,
       thumbnailUrl,
       date: new Date(),
-      category: category as 'front' | 'back' | 'side' | 'other',
+      category,
       notes,
       bodyMetrics: bodyMetrics || {},
       aiAnalysis,
@@ -336,7 +338,7 @@ export async function POST(request: Request) {
     // Try to save to database if it exists
     let savedPhoto;
     try {
-      const result = await db.insert(progressPhotos).values(newPhoto).returning();
+      const result = await db.insert(progressPhotos).values(dbPhoto).returning();
       savedPhoto = result[0];
       console.log('Photo saved to database:', savedPhoto);
     } catch (dbError) {

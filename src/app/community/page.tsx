@@ -44,7 +44,7 @@ export default function Community() {
 
   const joinChallenge = async (challengeId: string) => {
     try {
-      await api.post(`/challenges/${challengeId}/join`)
+      await api.post(`/challenges/${challengeId}/join`, {})
       // Update the challenges state to reflect the join
       setChallenges(challenges.map(challenge => 
         challenge.id === challengeId 

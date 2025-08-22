@@ -174,7 +174,7 @@ export class AIService {
         response_format: { type: "json_object" }
       });
       
-      const content = JSON.parse(completion.choices[0].message.content);
+      const content = safeJsonParse(completion.choices[0].message.content);
       return content;
     } catch (error) {
       console.error('Error generating recovery recommendation:', error);
@@ -278,7 +278,7 @@ export class AIService {
         response_format: { type: "json_object" }
       });
       
-      const content = JSON.parse(completion.choices[0].message.content);
+      const content = safeJsonParse(completion.choices[0].message.content);
       return content;
     } catch (error) {
       console.error('Error generating progression plan:', error);
@@ -386,7 +386,7 @@ export class AIService {
         response_format: { type: "json_object" }
       });
       
-      const content = JSON.parse(completion.choices[0].message.content);
+      const content = safeJsonParse(completion.choices[0].message.content);
       return content;
     } catch (error) {
       console.error('Error generating nutrition recommendation:', error);
@@ -485,7 +485,7 @@ export class AIService {
         response_format: { type: "json_object" }
       });
       
-      return JSON.parse(completion.choices[0].message.content);
+      return safeJsonParse(completion.choices[0].message.content);
     } catch (error) {
       console.error('Error generating workout feedback:', error);
       
@@ -568,7 +568,7 @@ You have the following context about the user:${userContext}${workoutContext}`;
         max_tokens: 1024
       });
       
-      return completion.choices[0].message.content;
+      return completion.choices[0].message.content || "I'm having trouble generating a response right now. Please try again.";
     } catch (error) {
       console.error('Error generating chat response:', error);
       return "I'm having trouble connecting to my AI systems right now. Please try again in a moment, or ask me a different question about your fitness journey.";

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { userProfiles, workoutLogs, userStats } from '@/lib/db/schema';
+import { userProfiles, workoutLogs, userStats, exercises } from '@/lib/db/schema';
 import { eq, desc, count, avg, and, sql } from 'drizzle-orm';
 
 // Define interfaces based on the actual database schema
@@ -19,6 +19,7 @@ interface UserProfile {
   trainingHistory?: any;
   injuryHistory?: any;
   recoveryMetrics?: any;
+  workoutStats?: any;
 }
 
 export async function POST(req: Request) {
@@ -155,12 +156,12 @@ export async function POST(req: Request) {
       trainingHistory: {
         workoutPreference: workoutPreference,
         age: profileData.age ? parseInt(profileData.age.toString()) : 
-             existingProfile[0]?.trainingHistory?.age || null,
+             (existingProfile[0]?.trainingHistory as any)?.age || null,
         equipment: equipment,
-        experience: profileData.experience || existingProfile[0]?.trainingHistory?.experience || null,
+        experience: profileData.experience || (existingProfile[0]?.trainingHistory as any)?.experience || null,
         aiNotes: isAIGenerated ? 
                 (profileData.notes || 'Profile updated via AI chat') : 
-                existingProfile[0]?.trainingHistory?.aiNotes || null
+                (existingProfile[0]?.trainingHistory as any)?.aiNotes || null
       },
       // Store medical conditions and injuries
       injuryHistory: medicalConditions.length > 0 ? medicalConditions : 
@@ -249,7 +250,7 @@ async function getEnrichedProfile(userId: string, includeStats: boolean = false)
     .where(eq(userProfiles.userId, userId));
 
   // Transform the profile data to match the expected frontend format
-  let profile = null;
+  let profile: any = null;
   if (profiles.length > 0) {
     const dbProfile = profiles[0] as UserProfile;
     
@@ -354,13 +355,13 @@ async function getWorkoutStats(userId: string) {
     // Get most trained muscle group
     const muscleGroupResult = await db
       .select({
-        muscleGroup: sql`e.muscle_group`,
+        muscleGroup: exercises.muscleGroup,
         count: count()
       })
       .from(workoutLogs)
-      .innerJoin('exercises as e', eq(workoutLogs.exerciseId, sql`e.id`))
+      .innerJoin(exercises, eq(workoutLogs.exerciseId, exercises.id))
       .where(eq(workoutLogs.userId, userId))
-      .groupBy(sql`e.muscle_group`)
+      .groupBy(exercises.muscleGroup)
       .orderBy(desc(count()))
       .limit(1);
     
