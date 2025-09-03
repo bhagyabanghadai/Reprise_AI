@@ -16,6 +16,14 @@ export async function GET(request: Request) {
     }, { status: 400 });
   }
 
+  // Check if database is available
+  if (!process.env.DATABASE_URL) {
+    return NextResponse.json({
+      success: false,
+      error: 'Database not configured',
+    }, { status: 503 });
+  }
+
   try {
     // Test DB connection
     await db.execute(sql`SELECT 1`);

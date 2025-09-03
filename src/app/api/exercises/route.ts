@@ -5,6 +5,14 @@ import { asc } from 'drizzle-orm';
 
 export async function GET() {
   try {
+    // Check if database is available
+    if (!process.env.DATABASE_URL) {
+      return NextResponse.json(
+        { error: 'Database not configured' },
+        { status: 503 }
+      );
+    }
+
     // First test the database connection
     const isConnected = await testConnection();
     if (!isConnected) {

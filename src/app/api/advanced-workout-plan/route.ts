@@ -17,6 +17,14 @@ export async function GET(request: Request) {
       );
     }
 
+    // Check if database is available
+    if (!process.env.DATABASE_URL) {
+      return NextResponse.json(
+        { error: 'Database not configured' },
+        { status: 503 }
+      );
+    }
+
     // Fetch available exercises first, we'll need them regardless
     const availableExercises = await db.select().from(exercises);
     
@@ -104,6 +112,14 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: 'User ID is required' },
         { status: 400 }
+      );
+    }
+
+    // Check if database is available
+    if (!process.env.DATABASE_URL) {
+      return NextResponse.json(
+        { error: 'Database not configured' },
+        { status: 503 }
       );
     }
 

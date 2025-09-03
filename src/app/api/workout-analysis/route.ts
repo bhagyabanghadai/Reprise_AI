@@ -15,6 +15,14 @@ export async function POST(request: Request) {
       );
     }
 
+    // Check if database is available
+    if (!process.env.DATABASE_URL) {
+      return NextResponse.json(
+        { error: 'Database not configured' },
+        { status: 503 }
+      );
+    }
+
     // Fetch user profile
     const [userProfile] = await db
       .select()

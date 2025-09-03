@@ -5,21 +5,39 @@ import * as schema from './schema';
 import { exercises, workoutLogs, progressionHistory, userStats, userProfiles, chatMessages } from './schema';
 
 // Initialize the database with explicit error handling
+let _db: ReturnType<typeof drizzle> | null = null;
+
 const createDb = () => {
+  if (_db) return _db;
+  
   try {
     if (!process.env.DATABASE_URL) {
+      // During build time, return a mock database to prevent errors
+      if (process.env.NODE_ENV === 'production' && !process.env.RAILWAY_ENVIRONMENT) {
+        console.warn('DATABASE_URL not set during build, using mock database');
+        return null as any;
+      }
       throw new Error('DATABASE_URL environment variable is not set');
     }
     
     const client = postgres(process.env.DATABASE_URL);
-    return drizzle(client, { schema });
+    _db = drizzle(client, { schema });
+    return _db;
   } catch (error) {
     console.error('Failed to initialize database:', error);
     throw error;
   }
 };
 
-export const db = createDb();
+export const db = new Proxy({} as ReturnType<typeof drizzle>, {
+  get(target, prop) {
+    const actualDb = createDb();
+    if (!actualDb) {
+      throw new Error('Database not available during build time');
+    }
+    return actualDb[prop as keyof typeof actualDb];
+  }
+});
 
 // Test database connection
 export async function testConnection() {

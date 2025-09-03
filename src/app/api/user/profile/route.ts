@@ -27,6 +27,14 @@ export async function POST(req: Request) {
     const data = await req.json();
     const userId = data.userId || "user-123"; // Use provided ID or fallback to mock for testing
     
+    // Check if database is available
+    if (!process.env.DATABASE_URL) {
+      return NextResponse.json(
+        { error: 'Database not configured' },
+        { status: 503 }
+      );
+    }
+    
     // Check if this is an AI-generated profile
     const isAIGenerated = data.source === 'ai-chat';
     

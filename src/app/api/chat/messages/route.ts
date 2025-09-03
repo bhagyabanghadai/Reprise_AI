@@ -12,6 +12,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'userId is required' }, { status: 400 });
     }
 
+    // Check if database is available
+    if (!process.env.DATABASE_URL) {
+      return NextResponse.json(
+        { error: 'Database not configured' },
+        { status: 503 }
+      );
+    }
+
     // Get messages for this user, ordered by timestamp
     const messages = await db.query.chatMessages.findMany({
       where: eq(chatMessages.userId, userId),
